@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Optional chapter-v2.chapterAudio extension. Missing is allowed; explicit null is invalid.",
+  "oneOf": [
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "audio", "duration", "reasons"],
+      "properties": {
+        "status": {"const": "available"},
+        "audio": {"type": "string", "minLength": 1},
+        "duration": {"type": "number", "exclusiveMinimum": 0},
+        "reasons": {"type": "array", "maxItems": 0, "items": {"type": "string"}}
+      }
+    },
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "audio", "duration", "reasons"],
+      "properties": {
+        "status": {"const": "unavailable"}, "audio": {"type": "null"}, "duration": {"type": "null"},
+        "reasons": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "\\S"}}
+      }
+    }
+  ]
+}

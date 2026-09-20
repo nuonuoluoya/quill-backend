@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "bookId": "the-lantern-garden",
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "chapterId": "c03",
+  "chapterDuration": 25.808979591836735,
+  "chapterAudio": {
+    "status": "available",
+    "audio": "audio/c03-full.mp3",
+    "duration": 25.808979591836735,
+    "reasons": []
+  },
+  "sentences": [
+    {
+      "id": "c03-s0001",
+      "index": 1,
+      "text": "The traveller thanked Mira for the tea.",
+      "audio": "audio/c03-s1.mp3",
+      "duration": 2.9257142857142857,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0002",
+      "index": 2,
+      "text": "He left one apple beside the blue lantern.",
+      "audio": "audio/c03-s2.mp3",
+      "duration": 3.4481632653061225,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0003",
+      "index": 3,
+      "text": "Then he followed the path towards the village.",
+      "audio": "audio/c03-s3.mp3",
+      "duration": 3.3436734693877552,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0004",
+      "index": 4,
+      "text": "Mira watched until the trees hid him from view.",
+      "audio": "audio/c03-s4.mp3",
+      "duration": 3.526530612244898,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0005",
+      "index": 5,
+      "text": "She took the lantern back to the gate.",
+      "audio": "audio/c03-s5.mp3",
+      "duration": 3.030204081632653,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0006",
+      "index": 6,
+      "text": "Its warm light touched the old stone wall.",
+      "audio": "audio/c03-s6.mp3",
+      "duration": 3.3959183673469386,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0007",
+      "index": 7,
+      "text": "Tomorrow she would return to the garden.",
+      "audio": "audio/c03-s7.mp3",
+      "duration": 3.030204081632653,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0008",
+      "index": 8,
+      "text": "For now, it was time to go home.",
+      "audio": "audio/c03-s8.mp3",
+      "duration": 3.3959183673469386,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    }
+  ]
+}

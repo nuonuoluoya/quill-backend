@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "buildId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "textRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "bookId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$"
+    },
+    "chapterId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$"
+    },
+    "chapterDuration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "sentences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0
+          },
+          "audio": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "alignment": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "auto_passed",
+                  "verified",
+                  "needs_review",
+                  "unmatched",
+                  "excluded"
+                ]
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "required": [
+              "status",
+              "reasons"
+            ],
+            "additionalProperties": true
+          },
+          "sourceText": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timing": {
+            "type": "object",
+            "properties": {
+              "timebase": {
+                "const": "chapter_seconds"
+              },
+              "speechStart": {
+                "type": "number",
+                "minimum": 0
+              },
+              "speechEnd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "clipStart": {
+                "type": "number",
+                "minimum": 0
+              },
+              "clipEnd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "leadingPad": {
+                "type": "number",
+                "minimum": 0
+              },
+              "trailingPad": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "timebase",
+              "speechStart",
+              "speechEnd",
+              "clipStart",
+              "clipEnd",
+              "leadingPad",
+              "trailingPad"
+            ],
+            "additionalProperties": true
+          },
+          "sourceTiming": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "number",
+                "minimum": 0
+              },
+              "end": {
+                "type": "number",
+                "minimum": 0
+              },
+              "timebase": {
+                "const": "chapter_seconds"
+              }
+            },
+            "required": [
+              "start",
+              "end",
+              "timebase"
+            ],
+            "additionalProperties": true
+          },
+          "padding": {
+            "type": "object",
+            "properties": {
+              "leadingSilence": {
+                "type": "number",
+                "minimum": 0.2,
+                "maximum": 0.5
+              },
+              "trailingSilence": {
+                "type": "number",
+                "minimum": 0.2,
+                "maximum": 0.5
+              },
+              "method": {
+                "const": "digital_silence"
+              }
+            },
+            "required": [
+              "leadingSilence",
+              "trailingSilence",
+              "method"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "index",
+          "text",
+          "duration",
+          "audio",
+          "alignment"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "buildId",
+    "textRevision",
+    "bookId",
+    "chapterId",
+    "chapterDuration",
+    "sentences"
+  ],
+  "additionalProperties": true
+}

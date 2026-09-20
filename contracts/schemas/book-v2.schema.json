@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "buildId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "textRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contentScope": {
+      "enum": [
+        "sample",
+        "complete"
+      ]
+    },
+    "book": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "language",
+        "edition"
+      ],
+      "additionalProperties": true
+    },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sentenceCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "playableCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duration": {
+            "type": "number",
+            "minimum": 0
+          },
+          "data": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sentenceCount",
+          "playableCount",
+          "duration",
+          "data"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "buildId",
+    "textRevision",
+    "contentScope",
+    "book",
+    "chapters"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "bookId": "a-quiet-morning",
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "chapterId": "c03",
+  "chapterDuration": 24.03265306122449,
+  "chapterAudio": {
+    "status": "available",
+    "audio": "audio/c03-full.mp3",
+    "duration": 24.03265306122449,
+    "reasons": []
+  },
+  "sentences": [
+    {
+      "id": "c03-s0001",
+      "index": 1,
+      "text": "In the afternoon I went for a walk.",
+      "audio": "audio/c03-s1.mp3",
+      "duration": 2.9257142857142857,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0002",
+      "index": 2,
+      "text": "The path followed a narrow stream.",
+      "audio": "audio/c03-s2.mp3",
+      "duration": 2.873469387755102,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0003",
+      "index": 3,
+      "text": "I could hear water moving over stones.",
+      "audio": "audio/c03-s3.mp3",
+      "duration": 3.213061224489796,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0004",
+      "index": 4,
+      "text": "Two children were flying a bright kite.",
+      "audio": "audio/c03-s4.mp3",
+      "duration": 3.1608163265306124,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0005",
+      "index": 5,
+      "text": "The kite rose above the green fields.",
+      "audio": "audio/c03-s5.mp3",
+      "duration": 3.0563265306122447,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0006",
+      "index": 6,
+      "text": "Soon the sun began to set.",
+      "audio": "audio/c03-s6.mp3",
+      "duration": 2.716734693877551,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0007",
+      "index": 7,
+      "text": "I followed the path back to my door.",
+      "audio": "audio/c03-s7.mp3",
+      "duration": 3.0563265306122447,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c03-s0008",
+      "index": 8,
+      "text": "The quiet morning had become a lovely day.",
+      "audio": "audio/c03-s8.mp3",
+      "duration": 3.2653061224489797,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    }
+  ]
+}

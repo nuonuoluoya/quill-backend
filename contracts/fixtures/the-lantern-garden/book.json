@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "contentScope": "sample",
+  "book": {
+    "id": "the-lantern-garden",
+    "title": "The Lantern Garden",
+    "language": "en-GB",
+    "edition": "原创语音样本"
+  },
+  "chapters": [
+    {
+      "id": "c01",
+      "title": "A Light in the Garden",
+      "sentenceCount": 8,
+      "playableCount": 7,
+      "duration": 25.521632653061225,
+      "data": "chapters/c01.json"
+    },
+    {
+      "id": "c02",
+      "title": "An Unexpected Guest",
+      "sentenceCount": 8,
+      "playableCount": 8,
+      "duration": 24.528979591836734,
+      "data": "chapters/c02.json"
+    },
+    {
+      "id": "c03",
+      "title": "Home Before Dark",
+      "sentenceCount": 8,
+      "playableCount": 8,
+      "duration": 25.808979591836735,
+      "data": "chapters/c03.json"
+    }
+  ]
+}

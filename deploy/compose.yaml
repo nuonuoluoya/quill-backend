@@ -1,0 +1,39 @@
+# Local integration only. Production requires HTTPS termination and real secrets.
+services:
+  postgres:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: pidan
+      POSTGRES_USER: pidan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pidan-local-only}
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pidan -d pidan"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3210
+      PUBLIC_BASE_URL: http://127.0.0.1:3210
+      DATABASE_URL: postgresql://pidan:${POSTGRES_PASSWORD:-pidan-local-only}@postgres:5432/pidan
+      MEDIA_ROOT: /app/.data/media
+      CORS_ORIGIN: http://127.0.0.1:5178
+    ports:
+      - "127.0.0.1:3210:3210"
+    volumes:
+      - media:/app/.data
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  postgres:
+  media:

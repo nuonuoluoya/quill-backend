@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 2,
+  "bookId": "a-quiet-morning",
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "chapterId": "c01",
+  "chapterDuration": 21.289795918367346,
+  "chapterAudio": {
+    "status": "available",
+    "audio": "audio/c01-full.mp3",
+    "duration": 21.289795918367346,
+    "reasons": []
+  },
+  "sentences": [
+    {
+      "id": "c01-s0001",
+      "index": 1,
+      "text": "The morning light filled the room.",
+      "audio": "audio/c01-s1.mp3",
+      "duration": 2.5861224489795918,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0002",
+      "index": 2,
+      "text": "A little bird was singing outside.",
+      "audio": "audio/c01-s2.mp3",
+      "duration": 2.899591836734694,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0003",
+      "index": 3,
+      "text": "I opened the window and listened.",
+      "audio": null,
+      "duration": null,
+      "alignment": {
+        "status": "needs_review",
+        "reasons": [
+          "待复核 · 暂无逐句音频"
+        ]
+      }
+    },
+    {
+      "id": "c01-s0004",
+      "index": 4,
+      "text": "The air was cool and fresh.",
+      "audio": "audio/c01-s4.mp3",
+      "duration": 2.6122448979591835,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0005",
+      "index": 5,
+      "text": "It was a quiet beginning.",
+      "audio": "audio/c01-s5.mp3",
+      "duration": 2.3248979591836734,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0006",
+      "index": 6,
+      "text": "A cup of tea waited on the table.",
+      "audio": "audio/c01-s6.mp3",
+      "duration": 2.84734693877551,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0007",
+      "index": 7,
+      "text": "I picked up my book and sat down.",
+      "audio": "audio/c01-s7.mp3",
+      "duration": 2.899591836734694,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c01-s0008",
+      "index": 8,
+      "text": "There was no need to hurry today.",
+      "audio": "audio/c01-s8.mp3",
+      "duration": 2.690612244897959,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "bookId": "a-quiet-morning",
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "chapterId": "c02",
+  "chapterDuration": 24.99918367346939,
+  "chapterAudio": {
+    "status": "available",
+    "audio": "audio/c02-full.mp3",
+    "duration": 24.99918367346939,
+    "reasons": []
+  },
+  "sentences": [
+    {
+      "id": "c02-s0001",
+      "index": 1,
+      "text": "A small garden lay beyond the window.",
+      "audio": "audio/c02-s1.mp3",
+      "duration": 3.1085714285714285,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0002",
+      "index": 2,
+      "text": "Rain had left tiny drops on the leaves.",
+      "audio": "audio/c02-s2.mp3",
+      "duration": 3.2914285714285714,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0003",
+      "index": 3,
+      "text": "The old tree moved gently in the breeze.",
+      "audio": "audio/c02-s3.mp3",
+      "duration": 3.213061224489796,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0004",
+      "index": 4,
+      "text": "I watched a butterfly rest on a flower.",
+      "audio": "audio/c02-s4.mp3",
+      "duration": 3.213061224489796,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0005",
+      "index": 5,
+      "text": "Somewhere nearby, a door opened.",
+      "audio": "audio/c02-s5.mp3",
+      "duration": 3.317551020408163,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0006",
+      "index": 6,
+      "text": "A neighbour walked past with a friendly smile.",
+      "audio": "audio/c02-s6.mp3",
+      "duration": 3.5526530612244898,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0007",
+      "index": 7,
+      "text": "I smiled back and turned the page.",
+      "audio": "audio/c02-s7.mp3",
+      "duration": 2.9779591836734696,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0008",
+      "index": 8,
+      "text": "The story was just beginning.",
+      "audio": "audio/c02-s8.mp3",
+      "duration": 2.5861224489795918,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    }
+  ]
+}

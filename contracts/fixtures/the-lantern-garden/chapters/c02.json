@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "bookId": "the-lantern-garden",
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "chapterId": "c02",
+  "chapterDuration": 24.528979591836734,
+  "chapterAudio": {
+    "status": "available",
+    "audio": "audio/c02-full.mp3",
+    "duration": 24.528979591836734,
+    "reasons": []
+  },
+  "sentences": [
+    {
+      "id": "c02-s0001",
+      "index": 1,
+      "text": "A gentle knock came from the garden wall.",
+      "audio": "audio/c02-s1.mp3",
+      "duration": 3.186938775510204,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0002",
+      "index": 2,
+      "text": "Mira looked up from the letter.",
+      "audio": "audio/c02-s2.mp3",
+      "duration": 2.6122448979591835,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0003",
+      "index": 3,
+      "text": "A traveller stood beside a wooden door.",
+      "audio": "audio/c02-s3.mp3",
+      "duration": 3.186938775510204,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0004",
+      "index": 4,
+      "text": "He held a basket of fresh apples.",
+      "audio": "audio/c02-s4.mp3",
+      "duration": 3.0563265306122447,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0005",
+      "index": 5,
+      "text": "She welcomed him with a smile.",
+      "audio": "audio/c02-s5.mp3",
+      "duration": 2.6383673469387756,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0006",
+      "index": 6,
+      "text": "They sat beneath the branches of a pear tree.",
+      "audio": "audio/c02-s6.mp3",
+      "duration": 3.2914285714285714,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0007",
+      "index": 7,
+      "text": "The lantern shone softly as they talked.",
+      "audio": "audio/c02-s7.mp3",
+      "duration": 3.422040816326531,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    },
+    {
+      "id": "c02-s0008",
+      "index": 8,
+      "text": "Evening arrived without either of them noticing.",
+      "audio": "audio/c02-s8.mp3",
+      "duration": 3.3959183673469386,
+      "alignment": {
+        "status": "verified",
+        "reasons": []
+      }
+    }
+  ]
+}

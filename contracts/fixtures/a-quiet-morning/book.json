@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "buildId": "original-speech-v1",
+  "textRevision": "original-text-v1",
+  "contentScope": "sample",
+  "book": {
+    "id": "a-quiet-morning",
+    "title": "A Quiet Morning",
+    "language": "en-GB",
+    "edition": "原创语音样本"
+  },
+  "chapters": [
+    {
+      "id": "c01",
+      "title": "A New Day",
+      "sentenceCount": 8,
+      "playableCount": 7,
+      "duration": 21.289795918367346,
+      "data": "chapters/c01.json"
+    },
+    {
+      "id": "c02",
+      "title": "By the Window",
+      "sentenceCount": 8,
+      "playableCount": 8,
+      "duration": 24.99918367346939,
+      "data": "chapters/c02.json"
+    },
+    {
+      "id": "c03",
+      "title": "The Walk Home",
+      "sentenceCount": 8,
+      "playableCount": 8,
+      "duration": 24.03265306122449,
+      "data": "chapters/c03.json"
+    }
+  ]
+}
