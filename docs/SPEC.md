@@ -1,5 +1,15 @@
 # Pidan Vocal — 微信小程序版项目规格
 
+## 前端维护流程（2026-09-20 起）
+
+- 前端代码目录：`D:\Quill`；规格唯一维护源：本文件 `D:\agent\SPEC\Quill\SPEC.md`。
+- 前端 GitHub 仓库：`https://github.com/nuonuoluoya/quill`；用于提交和推送的远端为 `origin`。
+- 每次前端修改必须先更新本规格中的相关行为、约束或验收标准，再修改代码；缺陷修复也先明确预期行为与回归验收要求。
+- 前端仓库的 `docs/SPEC.md` 是本文件的同步快照，不独立编辑；提交前同步，使规格与本次实现一同提交和审查。
+- 实现后执行相关检查，按前端 `AGENTS.md` 更新 README 和配置示例；检查通过后提交本次相关变更，并推送到上述 GitHub 仓库。
+- 提交前检查分支、远端及工作区，保留无关的已有修改；不提交实际本地配置、凭据或私人音频，不强制推送。检查或推送受阻时如实报告。
+- 当前前端已使用原生微信小程序 JS / JSON / WXML / WXSS；下文旧版 uni-app 技术选型及迁移状态描述属于待校准的历史规格，不作为切回 uni-app 的指令。本节只确立维护流程，不声明全部产品能力已实现或验收通过。
+
 ## 后端维护流程（2026-09-20 起）
 
 - 后端代码目录：`D:\quill-backend`；规格唯一维护源：本文件 `D:\agent\SPEC\Quill\SPEC.md`。
@@ -483,6 +493,14 @@ idle → selected → loading → playing ⇄ paused
 `wx.login` 的 code 由开发者服务端换取微信身份，这一点已通过微信官方类型声明核对。[登录接口依据](https://raw.githubusercontent.com/wechat-miniprogram/api-typings/master/types/wx/lib.wx.api.d.ts)
 
 AppSecret、微信 `session_key`、对象存储密钥、数据库密码只存在后端；不得返回客户端、写入公开仓库或日志。客户端传入的 OpenID、userId、角色不能作为可信身份。
+
+本地微信登录配置与排障：
+
+- 后端从项目根目录 `.env` 或进程环境读取 `WECHAT_APP_ID`、`WECHAT_APP_SECRET`，AppID 必须与前端微信小程序项目一致；配置修改后重启后端再获取新的 `wx.login` code。
+- 缺少任意一项凭据时，`POST /v1/auth/wechat` 返回 `503 SERVICE_UNAVAILABLE`，提示“微信登录尚未配置，请先体验样本”；不得请求微信换码、生成业务会话或用模拟身份绕过登录。公开样本仍可使用。
+- 微信换码请求网络失败或超时也可能返回 503，需结合响应正文区分，不能仅凭开发者工具控制台的 HTTP 状态判断为客户端版本问题。
+- 本地 `.env` 不纳入 Git；可以从前端本地配置同步 AppID，但 AppSecret 只能在后端本地填写或通过环境注入，不能放到前端或要求用户在聊天中发送。缺少密钥时如实标记真实登录尚未验证。
+- 回归验收覆盖分别缺少 AppID、缺少 AppSecret 的情况：返回上述明确错误，不进行微信换码，不调用会话创建。
 
 首版业务会话默认有效 2 小时，数据库仅保存 Token 摘要、所属账号、失效时间和撤销状态；登录返回 `expiresAt`。过期后用新的 `wx.login` code 重新建会话，不把旧 code 无限重试。单次 API 流程最多自动重新登录一次，失败后提示用户；写请求只有具备幂等键才可自动重放。退出撤销当前业务会话并清除本机该账号缓存。
 

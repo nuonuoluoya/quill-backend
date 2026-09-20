@@ -1,5 +1,5 @@
 import { projectPath } from '../src/paths.js';
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
+import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { mkdtemp, cp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Ajv } from 'ajv';
 import { Database } from '../src/db.js';
+import { config } from '../src/config.js';
 import { createApp } from '../src/app.js';
 import { Storage, byteRange } from '../src/storage.js';
 import { ImportService, validatePackage, safePath } from '../src/importer.js';
@@ -118,6 +119,34 @@ describe('HTTP contracts and private media', () => {
     const p = await server.services.books.playback(id, build, 'c01', 'chapter', null);
     expect(p.duration).toBeGreaterThan(10);
     expect(Date.parse(p.expiresAt) - Date.parse(p.issuedAt)).toBeGreaterThan(890000);
+  });
+  it.each([
+    { missing: 'AppID', appid: '', appSecret: 'test-only-secret' },
+    { missing: 'AppSecret', appid: 'test-only-appid', appSecret: '' },
+  ])('explains missing $missing without contacting WeChat or creating a session', async ({ appid, appSecret }) => {
+    const original = { appid: config.appid, appSecret: config.appSecret };
+    const exchange = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected WeChat request'));
+    const session = vi.spyOn(server.services.auth, 'session').mockRejectedValue(new Error('Unexpected session creation'));
+    try {
+      Object.assign(config, { appid, appSecret });
+      const r = await request(server.app.getHttpServer())
+        .post('/v1/auth/wechat')
+        .send({ code: 'test-login-code' });
+      expect(r.status).toBe(503);
+      expect(r.body.error).toEqual({
+        code: 'SERVICE_UNAVAILABLE',
+        message: '微信登录尚未配置，请先体验样本',
+        details: {},
+      });
+      expect(r.body.requestId).toBeTruthy();
+      expect(exchange).not.toHaveBeenCalled();
+      expect(session).not.toHaveBeenCalled();
+      expect((await request(server.app.getHttpServer()).get('/v1/books?audience=sample')).status).toBe(200);
+    } finally {
+      Object.assign(config, original);
+      exchange.mockRestore();
+      session.mockRestore();
+    }
   });
   it('has no mock login endpoint or fabricated WeChat login success', async () => {
     const r = await request(server.app.getHttpServer())
