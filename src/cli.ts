@@ -9,7 +9,7 @@ const [command, ...args] = process.argv.slice(2),
 const db = new Database(),
   ops = new ImportService(db, new Storage());
 try {
-  await db.migrate();
+  if (!production) await db.migrate();
   if (command === 'validate') {
     const p = await validatePackage(args[0]);
     console.log({

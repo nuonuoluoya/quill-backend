@@ -64,13 +64,18 @@ npm.cmd start
 
 `contracts` 与 `schemas` 已随后端独立维护；原工作区中的副本属于历史交付资料。接口变化时运行 `npm.cmd run openapi` 更新本项目契约。
 
-## 生产部署方案
+## 生产部署
 
-新项目使用独立 PostgreSQL；代码、数据库持久卷、音频目录和秘密配置分开管理。部署目标为 `codingluke.site`，API 基址为 `https://codingluke.site/v1`，后端 `PUBLIC_BASE_URL` 为 `https://codingluke.site`。
+生产使用独立 PostgreSQL，API 基址为 `https://codingluke.site/v1`，`PUBLIC_BASE_URL=https://codingluke.site`。服务器环境配置与本地开发 `.env` 分开；本地 API 可以继续使用回环地址。
 
-按 [独立 PostgreSQL 部署流程](deploy/PRODUCTION-PLAN.md) 分阶段实施。现有 `deploy/compose.yaml` 只用于开发联调，生产配置尚待实现。旧 MySQL 与旧应用保持原样，不作为迁移来源；此前的整套备份步骤已取消。本地 PGlite 数据保留，首次部署前确认需要迁入的业务数据范围，不直接复制数据库目录。
+- `deploy/compose.production.yaml` 使用固定外部卷 `quill_pgdata`，音频独立挂载 `/var/lib/quill/media`，API 只映射 `127.0.0.1:3210`，数据库不映射公网端口。Node/PostgreSQL 官方镜像按摘要锁定。
+- API 从 `/etc/quill/backend.env` 读取生产环境变量；Compose 通过 `env_file` 注入，密钥不进入镜像或 Git。设置 `TRUSTED_PROXY=172.30.42.1/32`，只信任此部署网络的宿主机代理，Nginx 覆盖转发 IP。
+- 生产启动和普通内容 CLI 不自动建表；使用迁移身份执行 `node dist/src/migrate.js`，再给 API 账号授予所需 DML 与序列权限。
+- 停止本地 PGlite 使用者后，可执行 `npm run data:transfer -- export FILE`。使用目标库迁移身份执行 `node dist/src/transfer-cli.js import FILE`，只接受空库；事务内核对字段、外键与逐表摘要。`verify FILE` 可再次核对数据和审计序列。迁移文件含私人数据，只可置于受限目录，不提交。
+- 生产 `seed` 和 `dev-session` 禁用，书籍运维继续使用 `validate/import/publish`；导入新音频时给运维容器单独提供可写媒体挂载，常驻 API 使用只读挂载。
+- `/v1/health/ready` 使用 `READY_TOKEN`，健康检查验证实际数据库连接。进程正常关闭数据库后退出，容器预留 30 秒停止时间。
 
-当前仅完成方案整理，未执行备份、迁移、证书修复或部署。
+部署顺序见 [生产部署流程](deploy/PRODUCTION-PLAN.md)。本次已授权实施和旧应用清理；旧 MySQL 不迁移、不备份、不卸载。新服务验证通过后再删除核实的旧应用目录和对应 PM2 项目。实际验收状态另记部署记录。
 
 ## 提交约定
 

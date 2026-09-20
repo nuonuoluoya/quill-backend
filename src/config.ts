@@ -18,6 +18,7 @@ function signingSecret() {
 }
 export const config = {
   port: Number(process.env.PORT || 3210),
+  trustedProxy: process.env.TRUSTED_PROXY || '',
   host: process.env.HOST || '127.0.0.1',
   publicBase: process.env.PUBLIC_BASE_URL || 'http://127.0.0.1:3210',
   databaseUrl: process.env.DATABASE_URL,

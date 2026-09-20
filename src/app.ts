@@ -176,12 +176,13 @@ class ApiController {
     return { status: 'ready' };
   }
 }
-export async function createApp(db = new Database(), storage = new Storage(), migrate = true) {
+export async function createApp(db = new Database(), storage = new Storage(), migrate = !production) {
   if (migrate) await db.migrate();
   const services = new Services(db, storage);
   @Module({ controllers: [ApiController], providers: [{ provide: Services, useValue: services }] })
   class AppModule {}
   const app = await NestFactory.create(AppModule, { logger: false, bodyParser: false });
+  if (config.trustedProxy) app.getHttpAdapter().getInstance().set('trust proxy', config.trustedProxy);
   app.enableCors({ origin: config.corsOrigin, credentials: false });
   app.use((req: Request, res: Response, next: () => void) => {
     const start = Date.now();

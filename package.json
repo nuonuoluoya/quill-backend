@@ -14,7 +14,9 @@
     "mock": "tsx src/mock.ts",
     "contract:check": "tsx src/openapi.ts --check",
     "schema:check": "tsx scripts/check-schemas.ts",
-    "schema:update": "tsx scripts/check-schemas.ts --update"
+    "schema:update": "tsx scripts/check-schemas.ts --update",
+    "db:migrate": "tsx src/migrate.ts",
+    "data:transfer": "tsx src/transfer-cli.ts"
   },
   "engines": {
     "node": ">=22.12"

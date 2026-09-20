@@ -42,7 +42,7 @@ const mutation = (version = 0): ProgressWrite => ({
 });
 beforeAll(async () => {
   root = await mkdtemp(resolve(tmpdir(), 'pidan-mini-test-'));
-  db = new Database('', 'memory://');
+  db = new Database(process.env.TEST_DATABASE_URL || '', 'memory://');
   await db.migrate();
   const storage = new Storage(resolve(root, 'media'));
   server = await createApp(db, storage, false);
@@ -259,7 +259,7 @@ describe('content pipeline and isolation', () => {
       ),
     ).toBe(true);
     console.log(
-      `50 concurrent local reads: ${Date.now() - start} ms total (PGlite test, not production benchmark)`,
+      `50 concurrent local reads: ${Date.now() - start} ms total (isolated integration database, not production benchmark)`,
     );
   });
   it('keeps old packages without chapterAudio valid and rejects invalid identity/count/audio metadata', async () => {

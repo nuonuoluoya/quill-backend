@@ -44,7 +44,12 @@ export class Database implements Queryable {
       'utf8',
     );
     if (this.local) await this.local.exec(sql);
-    else await this.pool!.query(sql);
+    else {
+      const client = await this.pool!.connect();
+      try { await client.query(sql); }
+      catch (error) { await client.query('ROLLBACK'); throw error; }
+      finally { client.release(); }
+    }
   }
   async close() {
     await this.pool?.end();

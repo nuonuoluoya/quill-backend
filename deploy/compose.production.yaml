@@ -1,0 +1,49 @@
+name: quill-prod
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-public.ecr.aws/docker/library/postgres@sha256:efedf3595f1d6f415c08568ba171029bf54052e754cc9f030e3f2412b21f3d67}
+    env_file: /etc/quill/postgres.env
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  api:
+    image: ${QUILL_IMAGE:?Set QUILL_IMAGE to the deployed commit image}
+    env_file: /etc/quill/backend.env
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    ports: ['127.0.0.1:3210:3210']
+    volumes: ['/var/lib/quill/media:/app/media:ro']
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [backend]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3210/v1/health/ready',{headers:{Authorization:'Bearer '+process.env.READY_TOKEN}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+volumes:
+  pgdata:
+    external: true
+    name: quill_pgdata
+networks:
+  backend:
+    name: quill_backend
+    ipam:
+      config: [{subnet: 172.30.42.0/24, gateway: 172.30.42.1}]
