@@ -46,6 +46,7 @@ beforeAll(async () => {
   await db.migrate();
   const storage = new Storage(resolve(root, 'media'));
   server = await createApp(db, storage, false);
+  await server.app.listen(0, "127.0.0.1");
   ops = new ImportService(db, storage);
   await ops.import(projectPath('contracts/fixtures', id), 'sample-public', 'test');
   await ops.publish(id, build, null, 'test');

@@ -77,6 +77,8 @@ npm.cmd start
 
 部署顺序见 [生产部署流程](deploy/PRODUCTION-PLAN.md)。本次已授权实施和旧应用清理；旧 MySQL 不迁移、不备份、不卸载。新服务验证通过后再删除核实的旧应用目录和对应 PM2 项目。实际验收状态另记部署记录。
 
+部署依赖已锁定修复后的 Ajv 8.20.0 和 Multer 2.3.0；生产依赖审计通过。PostgreSQL 并发集成测试使用持续监听的独立测试服务器，避免临时 HTTP 服务启停干扰并发结果。
+
 ## 提交约定
 
 GitHub 仓库：[nuonuoluoya/quill-backend](https://github.com/nuonuoluoya/quill-backend)，远端名称为 `origin`。
