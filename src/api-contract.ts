@@ -1,3 +1,4 @@
+import { contentTypes } from '../contracts/src/index.js';
 import type { OpenAPIObject } from '@nestjs/swagger';
 const string = { type: 'string' },
   integer = { type: 'integer', minimum: 0 },
@@ -18,7 +19,14 @@ const base = {
   expectedVersion: { ...integer, maximum: Number.MAX_SAFE_INTEGER - 1 },
   clientMutationId: { type: 'string', format: 'uuid' },
 };
+const contentType = { type: 'string', enum: [...contentTypes] };
+const episodeFields = { seasonId: string, episodeNumber: { ...integer, minimum: 1 } };
+const withOptional = (properties: Record<string, any>, optional: string[]) =>
+  object(properties, Object.keys(properties).filter(k => !optional.includes(k)));
 const book = {
+  contentType,
+  unitCount: integer,
+  coverUrl: { type: 'string', format: 'uri', pattern: '^https://' },
   bookId: string,
   buildId: string,
   textRevision: string,
@@ -35,23 +43,26 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       expiresAt: { type: 'string', format: 'date-time' },
       user: object({ id: string }),
     }),
-    Book: object({ ...book, chapters: array(ref('ChapterEntry')) }),
-    ChapterEntry: object({
+    Season: object({ id: identity, title: string, order: { ...integer, minimum: 1 } }),
+    Book: withOptional({ ...book, seasons: array(ref('Season')), chapters: array(ref('ChapterEntry')) }, ['coverUrl']),
+    ChapterEntry: withOptional({
+      ...episodeFields,
       id: string,
       title: string,
       sentenceCount: integer,
       playableCount: integer,
       duration: { type: 'number' },
       chapterAudioStatus: { type: 'string', enum: ['available', 'unavailable'] },
-    }),
-    BookSummary: object({
+    }, ['seasonId', 'episodeNumber']),
+    BookSummary: withOptional({
+      seasonCount: integer,
       ...book,
       chapterCount: integer,
       contentChapterCount: integer,
       sentenceCount: integer,
       playableCount: integer,
       chapterAudioAvailableCount: integer,
-    }),
+    }, ['coverUrl']),
     BookPage: object({ items: array(ref('BookSummary')), nextCursor: nullableString }),
     AudioInfo: object({
       status: { type: 'string', enum: ['available', 'unavailable'] },
@@ -78,7 +89,8 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       },
       ['id', 'index', 'text', 'duration', 'audioId', 'alignment'],
     ),
-    Chapter: object({
+    Chapter: withOptional({
+      ...episodeFields,
       bookId: string,
       buildId: string,
       textRevision: string,
@@ -86,7 +98,7 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       chapterDuration: { type: 'number', minimum: 0 },
       chapterAudio: ref('AudioInfo'),
       sentences: array(ref('Sentence')),
-    }),
+    }, ['seasonId', 'episodeNumber']),
     Playback: object({
       audioId: string,
       url: { type: 'string', format: 'uri' },
@@ -185,6 +197,7 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
             schema: { type: 'integer', minimum: 1, maximum: 50, default: 20 },
           },
           { name: 'cursor', in: 'query', schema: string },
+          { name: 'contentType', in: 'query', schema: contentType, description: 'Omit for all types; cursor is bound to this filter.' },
         );
       if (path.includes('/me/progress/') && method === 'get')
         route.parameters.push({

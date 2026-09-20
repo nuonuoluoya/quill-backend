@@ -370,3 +370,227 @@ describe('Range semantics', () => {
     expect(byteRange('items=2-3', 10).status).toBe(200);
   });
 });
+
+describe('Content types and optional TV seasons', () => {
+  const contentBuild = 'typed-v1';
+  let groupedDirectory: string;
+  async function packageFor(name: string, type?: string, grouped = false) {
+    const dir = resolve(root, name);
+    await cp(projectPath('contracts/fixtures', id), dir, { recursive: true });
+    const path = resolve(dir, 'book.json');
+    const b = JSON.parse(await readFile(path, 'utf8'));
+    b.book.id = name;
+    b.buildId = contentBuild;
+    if (type) b.contentType = type;
+    if (grouped) {
+      b.seasons = [{ id: 's1', title: '第一季', order: 1 }, { id: 's2', title: '第二季', order: 2 }];
+      b.chapters.forEach((c: any, i: number) => {
+        c.seasonId = i < 2 ? 's1' : 's2';
+        c.episodeNumber = i < 2 ? i + 1 : 1;
+      });
+    }
+    for (const entry of b.chapters) {
+      const path = resolve(dir, entry.data);
+      const c = JSON.parse(await readFile(path, 'utf8'));
+      c.bookId = name; c.buildId = contentBuild;
+      await writeFile(path, JSON.stringify(c));
+    }
+    await writeFile(path, JSON.stringify(b));
+    return dir;
+  }
+  const get = (path: string) => request(server.app.getHttpServer()).get(path);
+  function contract(name: string, value: unknown) {
+    const ajv = new Ajv({ strict: false, validateFormats: false });
+    // OpenAPI 3.0 boolean exclusiveMinimum differs from JSON Schema draft-07.
+    const components = JSON.parse(JSON.stringify(server.document.components), (_key, value) => {
+      if (value && typeof value === 'object' && typeof value.exclusiveMinimum === 'boolean') {
+        if (value.exclusiveMinimum) { value.exclusiveMinimum = value.minimum; delete value.minimum; }
+        else delete value.exclusiveMinimum;
+      }
+      return value;
+    });
+    const validate = ajv.compile({ $ref: `#/components/schemas/${name}`, components });
+    expect(validate(value), JSON.stringify(validate.errors)).toBe(true);
+  }
+  beforeAll(async () => {
+    for (const [name, type, grouped, visibility] of [
+      ['typed-book', undefined, false, 'sample-public'],
+      ['typed-blog', 'blog', false, 'sample-public'],
+      ['typed-movie-a', 'movie', false, 'sample-public'],
+      ['typed-movie-b', 'movie', false, 'sample-public'],
+      ['typed-movie-private', 'movie', false, 'private'],
+      ['typed-tv-flat', 'tv', false, 'sample-public'],
+      ['typed-tv-grouped', 'tv', true, 'sample-public'],
+    ] as const) {
+      const dir = await packageFor(name, type, grouped);
+      if (grouped) groupedDirectory = dir;
+      await ops.import(dir, visibility, 'typed-test');
+      await ops.publish(name, contentBuild, null, 'typed-test');
+    }
+    await db.query('INSERT INTO book_access(user_id,book_id) VALUES($1,$2)', [alice.user.id, 'typed-movie-private']);
+  });
+  it('filters before pagination and applies permissions to every content type', async () => {
+    for (const type of ['book', 'blog', 'movie', 'tv']) {
+      const r = await get('/v1/books?contentType=' + type);
+      expect(r.status).toBe(200);
+      expect(r.body.data.items.length).toBeGreaterThan(0);
+      expect(r.body.data.items.every((b: any) => b.contentType === type && b.visibility === 'sample-public')).toBe(true);
+      contract('BookPage', r.body.data);
+    }
+    const first = await get('/v1/books?contentType=movie&limit=1');
+    expect(first.body.data.items.map((b: any) => b.bookId)).toEqual(['typed-movie-a']);
+    const second = await get('/v1/books?contentType=movie&limit=1&cursor=' + encodeURIComponent(first.body.data.nextCursor));
+    expect(second.body.data.items.map((b: any) => b.bookId)).toEqual(['typed-movie-b']);
+    expect(second.body.data.nextCursor).toBeNull();
+    const alicePage = await get('/v1/books?contentType=movie&audience=member').set('Authorization', `Bearer ${alice.accessToken}`);
+    expect(alicePage.body.data.items.map((b: any) => b.bookId)).toEqual(['typed-movie-private']);
+    const bobPage = await get('/v1/books?contentType=movie&audience=member').set('Authorization', `Bearer ${bob.accessToken}`);
+    expect(bobPage.body.data.items).toEqual([]);
+    expect((await get('/v1/books/typed-movie-private')).status).toBe(401);
+    expect((await get('/v1/books/typed-movie-private').set('Authorization', `Bearer ${bob.accessToken}`)).status).toBe(403);
+    expect((await request(server.app.getHttpServer()).post(`/v1/books/typed-movie-private/builds/${contentBuild}/sentences/c01-s0001/playback`).set('Authorization', `Bearer ${bob.accessToken}`)).status).toBe(403);
+    expect((await get('/v1/books?contentType=movie&audience=member')).status).toBe(401);
+  });
+  it('rejects invalid types and cross-type/all cursor reuse while accepting legacy all cursors', async () => {
+    for (const query of ['contentType=podcast', 'contentType=', 'contentType=tv&contentType=book'])
+      expect((await get('/v1/books?' + query)).status).toBe(400);
+    const filtered = await get('/v1/books?contentType=movie&limit=1');
+    const cursor = encodeURIComponent(filtered.body.data.nextCursor);
+    expect((await get('/v1/books?contentType=tv&cursor=' + cursor)).status).toBe(400);
+    expect((await get('/v1/books?cursor=' + cursor)).status).toBe(400);
+    expect((await get('/v1/books?contentType=movie&cursor=' + cursor).set('Authorization', `Bearer ${alice.accessToken}`)).status).toBe(400);
+    const all = await get('/v1/books?limit=1');
+    expect((await get('/v1/books?contentType=book&cursor=' + encodeURIComponent(all.body.data.nextCursor))).status).toBe(400);
+    const { sign } = await import('../src/books.js');
+    const body = Buffer.from(JSON.stringify({ user: null, audience: 'sample', after: 'page-000' })).toString('base64url');
+    const legacy = encodeURIComponent(body + '.' + sign(body));
+    expect((await get('/v1/books?cursor=' + legacy)).status).toBe(200);
+    expect((await get('/v1/books?contentType=book&cursor=' + legacy)).status).toBe(400);
+  });
+  it('normalizes stored legacy snapshots without rewriting metadata or digests', async () => {
+    await db.query("UPDATE book_builds SET metadata=metadata-'contentType'-'unitCount'-'seasons' WHERE book_id='typed-book'");
+    const before = (await db.query("SELECT metadata,digest FROM book_builds WHERE book_id='typed-book'")).rows[0];
+    const r = await get('/v1/books/typed-book');
+    expect(r.body.data).toMatchObject({ contentType: 'book', unitCount: 3, seasons: [] });
+    contract('Book', r.body.data);
+    const listing = await get('/v1/books?contentType=book&limit=50');
+    // Existing pagination fixtures may precede this item, so follow filtered pages.
+    let page = listing.body.data;
+    while (!page.items.some((b: any) => b.bookId === 'typed-book') && page.nextCursor)
+      page = (await get('/v1/books?contentType=book&limit=50&cursor=' + encodeURIComponent(page.nextCursor))).body.data;
+    expect(page.items.find((b: any) => b.bookId === 'typed-book')).toMatchObject({ contentType: 'book', unitCount: 3, seasonCount: 0 });
+    expect((await db.query("SELECT metadata,digest FROM book_builds WHERE book_id='typed-book'")).rows[0]).toEqual(before);
+  });
+  it('returns flat and grouped TV directories and distinct signed audio for same-number episodes', async () => {
+    const flat = (await get('/v1/books/typed-tv-flat')).body.data;
+    expect(flat.seasons).toEqual([]);
+    expect(flat.chapters.map((c: any) => [c.episodeNumber, c.seasonId])).toEqual([[1, undefined], [2, undefined], [3, undefined]]);
+    contract('Book', flat);
+    const grouped = (await get('/v1/books/typed-tv-grouped')).body.data;
+    expect(grouped.seasons.map((s: any) => s.id)).toEqual(['s1', 's2']);
+    expect(grouped.chapters.map((c: any) => [c.id, c.seasonId, c.episodeNumber])).toEqual([
+      ['c01', 's1', 1], ['c02', 's1', 2], ['c03', 's2', 1],
+    ]);
+    contract('Book', grouped);
+    const summary = (await get('/v1/books?contentType=tv')).body.data.items.find((b: any) => b.bookId === 'typed-tv-grouped');
+    expect(summary).toMatchObject({ unitCount: 3, seasonCount: 2 });
+    expect(summary.seasons).toBeUndefined(); expect(summary.chapters).toBeUndefined();
+    const chapter = (await get(`/v1/books/typed-tv-grouped/builds/${contentBuild}/chapters/c03`)).body.data;
+    expect(chapter).toMatchObject({ seasonId: 's2', episodeNumber: 1 });
+    contract('Chapter', chapter);
+    const audioIds = [];
+    for (const chapterId of ['c01', 'c03']) {
+      const r = await request(server.app.getHttpServer()).post(`/v1/books/typed-tv-grouped/builds/${contentBuild}/sentences/${chapterId}-s0001/playback`);
+      expect(r.status).toBe(201); contract('Playback', r.body.data);
+      audioIds.push(r.body.data.audioId);
+      const url = new URL(r.body.data.url);
+      expect((await get(url.pathname + url.search).set('Range', 'bytes=0-15')).status).toBe(206);
+    }
+    expect(new Set(audioIds).size).toBe(2);
+  });
+  it('keeps correct episode progress across season metadata updates and newly added seasons', async () => {
+    const bookId = 'typed-tv-grouped';
+    const headers = { Authorization: `Bearer ${alice.accessToken}` };
+    const saved = await request(server.app.getHttpServer()).put('/v1/me/progress/' + bookId).set(headers)
+      .send({ ...mutation(), sourceBuildId: contentBuild, chapterId: 'c03', sentenceId: 'c03-s0001' });
+    expect(saved.status).toBe(200);
+    const wrong = await request(server.app.getHttpServer()).put('/v1/me/progress/' + bookId).set(headers)
+      .send({ ...mutation(1), sourceBuildId: contentBuild, chapterId: 'c01', sentenceId: 'c03-s0001' });
+    expect(wrong.status).toBe(422);
+    const r = await get(`/v1/me/progress/${bookId}?textRevision=${revision}`).set(headers);
+    expect(r.body.data.progress).toMatchObject({ chapterId: 'c03', sentenceId: 'c03-s0001' });
+    const newBuild = 'typed-v2';
+    const dir = resolve(root, 'typed-tv-updated');
+    await cp(groupedDirectory, dir, { recursive: true });
+    const path = resolve(dir, 'book.json');
+    const b = JSON.parse(await readFile(path, 'utf8'));
+    b.buildId = newBuild; b.seasons[0].title = '第一季（新版目录）';
+    // Regroup existing stable episodes into an added season; text/order stay intact.
+    b.seasons.push({ id: 's3', title: '第三季', order: 3 });
+    b.chapters[1].seasonId = 's2'; b.chapters[1].episodeNumber = 1;
+    b.chapters[2].seasonId = 's3';
+    for (const e of b.chapters) {
+      const f = resolve(dir, e.data); const c = JSON.parse(await readFile(f, 'utf8'));
+      c.buildId = newBuild; await writeFile(f, JSON.stringify(c));
+    }
+    await writeFile(path, JSON.stringify(b));
+    await ops.import(dir, 'sample-public', 'typed-test');
+    await ops.publish(bookId, newBuild, contentBuild, 'typed-test');
+    expect((await get(`/v1/me/progress/${bookId}?textRevision=${revision}`).set(headers)).body.data).toEqual(r.body.data);
+    const current = (await get('/v1/books/' + bookId)).body.data;
+    expect(current.chapters.find((c: any) => c.id === r.body.data.progress.chapterId)).toMatchObject({ seasonId: 's3', episodeNumber: 1 });
+    const old = (await get(`/v1/books/${bookId}/builds/${contentBuild}`)).body.data;
+    expect(old.chapters[2].seasonId).toBe('s2');
+  });
+  it('rejects invalid content/season metadata before database or storage writes', async () => {
+    const dir = await packageFor('typed-invalid', 'tv', true);
+    const path = resolve(dir, 'book.json');
+    const original = JSON.parse(await readFile(path, 'utf8'));
+    const cases = [
+      (b: any) => { b.contentType = 'video'; },
+      (b: any) => { b.contentType = null; },
+      (b: any) => { b.seasons = null; },
+      (b: any) => { b.seasons[1].id = 's1'; },
+      (b: any) => { b.seasons[1].order = 1; },
+      (b: any) => { b.seasons[0].order = 0; },
+      (b: any) => { b.seasons[0].title = ' '; },
+      (b: any) => { b.chapters[0].seasonId = 'missing'; },
+      (b: any) => { delete b.chapters[0].episodeNumber; },
+      (b: any) => { b.chapters[1].episodeNumber = 1; },
+      (b: any) => { b.chapters[1].episodeNumber = 1.5; },
+      (b: any) => { b.chapters[2].seasonId = 's1'; b.chapters[2].episodeNumber = 3; },
+      (b: any) => { b.chapters[0].seasonId = 's2'; },
+      (b: any) => { b.seasons = []; },
+      (b: any) => { b.contentType = 'movie'; },
+      (b: any) => { b.coverUrl = 'http://example.com/a.jpg'; },
+      (b: any) => { b.coverUrl = 'https://user:secret@example.com/a.jpg'; },
+      (b: any) => { b.chapters[1].id = b.chapters[0].id; },
+    ];
+    for (const change of cases) {
+      const b = structuredClone(original); change(b);
+      await writeFile(path, JSON.stringify(b));
+      await expect(ops.import(dir, 'sample-public', 'typed-test')).rejects.toThrow();
+    }
+    expect((await db.query("SELECT 1 FROM books WHERE book_id='typed-invalid'")).rows).toHaveLength(0);
+    const flat = structuredClone(original); flat.seasons = [];
+    flat.chapters.forEach((c: any) => { delete c.seasonId; delete c.episodeNumber; });
+    flat.chapters[0].episodeNumber = 2; // default second episode is also 2
+    await writeFile(path, JSON.stringify(flat));
+    await expect(validatePackage(dir)).rejects.toThrow('集号');
+    const ordinary = structuredClone(flat); ordinary.contentType = 'blog'; delete ordinary.seasons;
+    await writeFile(path, JSON.stringify(ordinary));
+    await expect(validatePackage(dir)).rejects.toThrow('仅电视剧');
+  });
+  it('preserves cover metadata without fetching it and accepts explicitly empty TV seasons', async () => {
+    const dir = await packageFor('typed-cover', 'tv');
+    const path = resolve(dir, 'book.json'); const b = JSON.parse(await readFile(path, 'utf8'));
+    b.seasons = []; b.coverUrl = 'https://covers.invalid/cover.jpg';
+    await writeFile(path, JSON.stringify(b));
+    await ops.import(dir, 'sample-public', 'typed-test');
+    await ops.publish('typed-cover', contentBuild, null, 'typed-test');
+    const value = (await get('/v1/books/typed-cover')).body.data;
+    expect(value).toMatchObject({ coverUrl: b.coverUrl, seasons: [], contentType: 'tv', unitCount: 3 });
+    contract('Book', value);
+    expect((await get('/v1/books?contentType=tv')).body.data.items.find((b: any) => b.bookId === 'typed-cover').coverUrl).toBe(b.coverUrl);
+  });
+});

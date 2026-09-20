@@ -15,4 +15,4 @@ for (const name of ['book-v2.schema.json', 'chapter-v2.schema.json']) {
   else if ((await readFile(snapshot, 'utf8')) !== source)
     throw Error(`Schema snapshot drift: ${name}`);
 }
-console.log('v2 schema snapshots match upstream; chapterAudio is maintained separately');
+console.log('v2 schema snapshots match upstream; chapterAudio and content metadata extensions are maintained separately');

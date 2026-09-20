@@ -35,6 +35,7 @@ import { ProgressService } from './progress.js';
 import { Fault } from './errors.js';
 import { Storage, byteRange } from './storage.js';
 import { config, production } from './config.js';
+import { contentTypes } from '../contracts/src/index.js';
 import { completeContract } from './api-contract.js';
 export class Services {
   auth: AuthService;
@@ -85,6 +86,7 @@ class ApiController {
     const parsed = z
       .object({
         audience: z.enum(['sample', 'member']).default('sample'),
+        contentType: z.enum(contentTypes).optional(),
         limit: z.coerce.number().int().min(1).max(50).default(20),
         cursor: z.string().max(2048).optional(),
       })
@@ -96,6 +98,7 @@ class ApiController {
       parsed.data.audience,
       parsed.data.limit,
       parsed.data.cursor,
+      parsed.data.contentType,
     );
   }
   @Get('books/:bookId') async book(

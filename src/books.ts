@@ -3,7 +3,8 @@ import { Database, type Queryable } from './db.js';
 import { access } from './auth.js';
 import { Fault } from './errors.js';
 import { config } from './config.js';
-import type { Book, BookSummary, Chapter } from '../contracts/src/index.js';
+import { normalizeBook } from './content-metadata.js';
+import type { Book, BookSummary, Chapter, ContentType } from '../contracts/src/index.js';
 export function sign(value: string) {
   return createHmac('sha256', config.secret).update(value).digest('base64url');
 }
@@ -36,7 +37,7 @@ export async function readable(
 }
 export class BooksService {
   constructor(private db: Database) {}
-  async list(user: string | null, audience: string, limit: number, cursor?: string) {
+  async list(user: string | null, audience: string, limit: number, cursor?: string, contentType?: ContentType) {
     if (audience === 'member' && !user)
       throw new Fault(401, 'SESSION_EXPIRED', '登录后查看我的书籍');
     let after = '';
@@ -45,7 +46,8 @@ export class BooksService {
         const [body, signature, extra] = cursor.split('.');
         if (extra !== undefined || !signature || !equal(signature, sign(body))) throw Error();
         const c = JSON.parse(Buffer.from(body, 'base64url').toString());
-        if (c.audience !== audience || c.user !== user || typeof c.after !== 'string')
+        if (c.audience !== audience || c.user !== user || typeof c.after !== 'string' ||
+          (c.contentType ?? null) !== (contentType ?? null))
           throw Error();
         after = c.after;
       } catch {
@@ -54,13 +56,14 @@ export class BooksService {
     }
     const { rows } = await this.db.query(
       `SELECT b.visibility,v.metadata FROM books b JOIN book_builds v ON v.book_id=b.book_id AND v.build_id=b.active_build_id AND v.status='active'
-      WHERE b.book_id>$1 AND (($2='sample' AND b.visibility='sample-public') OR ($2='member' AND b.visibility='private' AND EXISTS(SELECT 1 FROM book_access a WHERE a.book_id=b.book_id AND a.user_id=$3 AND a.revoked_at IS NULL AND a.starts_at<=now() AND (a.expires_at IS NULL OR a.expires_at>now())))) ORDER BY b.book_id LIMIT $4`,
-      [after, audience, user, limit + 1],
+      WHERE b.book_id>$1 AND (($2='sample' AND b.visibility='sample-public') OR ($2='member' AND b.visibility='private' AND EXISTS(SELECT 1 FROM book_access a WHERE a.book_id=b.book_id AND a.user_id=$3 AND a.revoked_at IS NULL AND a.starts_at<=now() AND (a.expires_at IS NULL OR a.expires_at>now())))) AND ($5::text IS NULL OR COALESCE(v.metadata->>'contentType','book')=$5) ORDER BY b.book_id LIMIT $4`,
+      [after, audience, user, limit + 1, contentType ?? null],
     );
     const items: BookSummary[] = rows.slice(0, limit).map((r) => {
-      const { chapters, ...book } = r.metadata as Book;
+      const { chapters, seasons, ...book } = normalizeBook(r.metadata as Book);
       return {
         ...book,
+        seasonCount: seasons.length,
         visibility: r.visibility,
         chapterCount: chapters.length,
         contentChapterCount: chapters.filter((c) => c.sentenceCount > 0).length,
@@ -72,7 +75,7 @@ export class BooksService {
       };
     });
     const body = Buffer.from(
-      JSON.stringify({ user, audience, after: items.at(-1)?.bookId }),
+      JSON.stringify({ user, audience, contentType: contentType ?? null, after: items.at(-1)?.bookId }),
     ).toString('base64url');
     return { items, nextCursor: rows.length > limit ? `${body}.${sign(body)}` : null };
   }
@@ -83,7 +86,7 @@ export class BooksService {
   }
   async snapshot(bookId: string, buildId: string, user: string | null): Promise<Book> {
     const { build, book } = await readable(this.db, bookId, buildId, user);
-    return { ...build.metadata, visibility: book.visibility };
+    return { ...normalizeBook(build.metadata), visibility: book.visibility };
   }
   async chapter(
     bookId: string,

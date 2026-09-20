@@ -1,3 +1,4 @@
+import { validateContentMetadata, episodeFields } from './content-metadata.js';
 import { projectPath } from './paths.js';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { resolve, relative, isAbsolute, sep } from 'node:path';
@@ -72,9 +73,14 @@ export async function validatePackage(directory: string): Promise<ValidatedPacka
   const va = ajv.compile(
     JSON.parse(await readFile(projectPath('contracts/schemas/chapter-audio.schema.json'), 'utf8')),
   );
+  const vm = ajv.compile(JSON.parse(
+    await readFile(projectPath('contracts/schemas/content-metadata.schema.json'), 'utf8'),
+  ));
   const rootFile = await load('book.json'),
     book = JSON.parse(await readFile(rootFile.absolute, 'utf8'));
   assert(vb(book), `书籍 Schema 无效：${ajv.errorsText(vb.errors)}`);
+  assert(vm(book), `内容类型/分季 Schema 无效：${ajv.errorsText(vm.errors)}`);
+  validateContentMetadata(book);
   assert(book.buildId.length <= 512 && book.textRevision.length <= 512, '版本标识超过 512 字符');
   const ids = new Set<string>(),
     chapterIds = new Set<string>(),
@@ -259,9 +265,10 @@ export class ImportService {
       });
       return audioId;
     };
-    for (const c of p.chapters) {
+    for (const [index, c] of p.chapters.entries()) {
       const ca = c.chapterAudio;
       chapterDtos.push({
+        ...episodeFields(b, b.chapters[index], index),
         bookId: id,
         buildId: build,
         textRevision: b.textRevision,
@@ -298,6 +305,10 @@ export class ImportService {
       await this.storage.put(a.objectKey, data, a.f.hash);
     }
     const dto: Book = {
+      contentType: b.contentType ?? 'book',
+      unitCount: b.chapters.length,
+      seasons: b.seasons ?? [],
+      ...(b.coverUrl !== undefined ? { coverUrl: b.coverUrl } : {}),
       bookId: id,
       buildId: build,
       textRevision: b.textRevision,
@@ -307,6 +318,7 @@ export class ImportService {
       contentScope: b.contentScope,
       visibility,
       chapters: b.chapters.map((e: any, i: number) => ({
+        ...episodeFields(b, e, i),
         id: e.id,
         title: e.title,
         sentenceCount: e.sentenceCount,

@@ -7,6 +7,9 @@ export type AlignmentStatus =
   | 'needs_review'
   | 'unmatched'
   | 'excluded';
+export const contentTypes = ['book', 'blog', 'movie', 'tv'] as const;
+export type ContentType = (typeof contentTypes)[number];
+export interface Season { id: string; title: string; order: number; }
 export type Visibility = 'sample-public' | 'private';
 export interface AudioInfo {
   status: 'available' | 'unavailable';
@@ -24,6 +27,8 @@ export interface Sentence {
   alignment: { status: AlignmentStatus; reasons: string[] };
 }
 export interface ChapterEntry {
+  seasonId?: string;
+  episodeNumber?: number;
   id: string;
   title: string;
   sentenceCount: number;
@@ -32,6 +37,10 @@ export interface ChapterEntry {
   chapterAudioStatus: AudioInfo['status'];
 }
 export interface Book {
+  contentType: ContentType;
+  unitCount: number;
+  coverUrl?: string;
+  seasons: Season[];
   bookId: string;
   buildId: string;
   textRevision: string;
@@ -42,7 +51,8 @@ export interface Book {
   visibility: Visibility;
   chapters: ChapterEntry[];
 }
-export interface BookSummary extends Omit<Book, 'chapters'> {
+export interface BookSummary extends Omit<Book, 'chapters' | 'seasons'> {
+  seasonCount: number;
   chapterCount: number;
   contentChapterCount: number;
   sentenceCount: number;
@@ -54,6 +64,8 @@ export interface BookPage {
   nextCursor: string | null;
 }
 export interface Chapter {
+  seasonId?: string;
+  episodeNumber?: number;
   bookId: string;
   buildId: string;
   textRevision: string;

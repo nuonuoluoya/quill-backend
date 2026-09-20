@@ -467,6 +467,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "contentType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "book",
+                "blog",
+                "movie",
+                "tv"
+              ]
+            },
+            "description": "Omit for all types; cursor is bound to this filter."
           }
         ],
         "responses": {
@@ -2339,9 +2353,50 @@
         ],
         "additionalProperties": false
       },
+      "Season": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "order"
+        ],
+        "additionalProperties": false
+      },
       "Book": {
         "type": "object",
         "properties": {
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "book",
+              "blog",
+              "movie",
+              "tv"
+            ]
+          },
+          "unitCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "coverUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
           "bookId": {
             "type": "string"
           },
@@ -2374,6 +2429,12 @@
               "private"
             ]
           },
+          "seasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Season"
+            }
+          },
           "chapters": {
             "type": "array",
             "items": {
@@ -2382,6 +2443,8 @@
           }
         },
         "required": [
+          "contentType",
+          "unitCount",
           "bookId",
           "buildId",
           "textRevision",
@@ -2390,6 +2453,7 @@
           "edition",
           "contentScope",
           "visibility",
+          "seasons",
           "chapters"
         ],
         "additionalProperties": false
@@ -2397,6 +2461,13 @@
       "ChapterEntry": {
         "type": "object",
         "properties": {
+          "seasonId": {
+            "type": "string"
+          },
+          "episodeNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
           "id": {
             "type": "string"
           },
@@ -2435,6 +2506,28 @@
       "BookSummary": {
         "type": "object",
         "properties": {
+          "seasonCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "book",
+              "blog",
+              "movie",
+              "tv"
+            ]
+          },
+          "unitCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "coverUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
           "bookId": {
             "type": "string"
           },
@@ -2489,6 +2582,9 @@
           }
         },
         "required": [
+          "seasonCount",
+          "contentType",
+          "unitCount",
           "bookId",
           "buildId",
           "textRevision",
@@ -2625,6 +2721,13 @@
       "Chapter": {
         "type": "object",
         "properties": {
+          "seasonId": {
+            "type": "string"
+          },
+          "episodeNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
           "bookId": {
             "type": "string"
           },
