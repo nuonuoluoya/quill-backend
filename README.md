@@ -64,6 +64,14 @@ npm.cmd start
 
 `contracts` 与 `schemas` 已随后端独立维护；原工作区中的副本属于历史交付资料。接口变化时运行 `npm.cmd run openapi` 更新本项目契约。
 
+## 生产部署方案
+
+新项目使用独立 PostgreSQL；代码、数据库持久卷、音频目录和秘密配置分开管理。部署目标为 `codingluke.site`，API 基址为 `https://codingluke.site/v1`，后端 `PUBLIC_BASE_URL` 为 `https://codingluke.site`。
+
+按 [独立 PostgreSQL 部署流程](deploy/PRODUCTION-PLAN.md) 分阶段实施。现有 `deploy/compose.yaml` 只用于开发联调，生产配置尚待实现。旧 MySQL 与旧应用保持原样，不作为迁移来源；此前的整套备份步骤已取消。本地 PGlite 数据保留，首次部署前确认需要迁入的业务数据范围，不直接复制数据库目录。
+
+当前仅完成方案整理，未执行备份、迁移、证书修复或部署。
+
 ## 提交约定
 
 GitHub 仓库：[nuonuoluoya/quill-backend](https://github.com/nuonuoluoya/quill-backend)，远端名称为 `origin`。
