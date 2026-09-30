@@ -68,7 +68,7 @@ GET /v1/books
 
 ## 播客节目与分期
 
-`contentType=podcast` 是独立播客类型，`blog` 继续表示博客。服务端按类型和权限筛选后分页，客户端不扫描所有类型拼出播客列表。
+`contentType=podcast` 是独立播客类型。前端播客替换原博客标签，分类栏保持五项；`blog` 仅保留历史数据/API 兼容，在全部列表中可达。服务端按类型和权限筛选后分页，客户端不扫描所有类型拼出播客列表。
 
 每个节目对应一个 bookId。摘要新增 `episodeCount` 表示期数（非播客为 0），`chapterCount/unitCount` 仍表示实际学习部分数量。摘要不含 `episodes/chapters`；详情新增 `episodes`，其他类型返回空数组。
 

@@ -153,8 +153,8 @@ npm.cmd run cli -- grant "<手机微信账号user.id>" <bookId>
 
 ## 播客与 English Pod
 
-新增独立 `podcast` 类型，按“播客 → English Pod → 期数 → 对话 / 教学”组织，`blog` 仍表示博客。`GET /v1/books?audience=member&contentType=podcast` 按权限筛选并分页。摘要 `episodeCount` 是期数；详情 `episodes` 提供期号与主题，章节 `episodeId/part` 对应对话或教学。播放和进度沿用 chapterId/sentenceId 接口。
+新增独立 `podcast` 类型，按“播客 → English Pod → 期数 → 对话 / 教学”组织。前端播客替换原博客标签，保留五项分类；`blog` 仅保留历史数据/API 兼容。`GET /v1/books?audience=member&contentType=podcast` 按权限筛选并分页。摘要 `episodeCount` 是期数；详情 `episodes` 提供期号与主题，章节 `episodeId/part` 对应对话或教学。播放和进度沿用 chapterId/sentenceId 接口。
 
 使用 `npx.cmd tsx scripts/prepare-englishpod.ts SOURCE NEW_OUTPUT_DIRECTORY` 适配源包，再执行 CLI validate/import/publish/grant。输出目录必须新建且位于源目录之外，原始文件不改动。365 期的 8 处缺源保留缺失状态，待复核句不开放播放，不合成整期音频。详见 [内容类型与播客导入说明](docs/CONTENT-TYPES.md)。前端由前端会话接入，生产部署及内容导入结果以独立上线记录为准。
 
-后端播客实现已通过 34 项回归、类型、Schema/OpenAPI、构建及完整素材校验；[English Pod 上线计划](deploy/ENGLISHPOD-PLAN-2026-09-30.md)列出具体发布范围和步骤。当前尚未执行生产部署或导入，待明确的生产写入授权。
+后端播客实现已通过 34 项回归、类型、Schema/OpenAPI、构建及完整素材校验；[English Pod 上线计划](deploy/ENGLISHPOD-PLAN-2026-09-30.md)列出具体发布范围和步骤。2026-09-30 已经用户明确授权部署 `4fa1e86` 并完成私人内容导入：365 期、722 部分、88,995 句可播放，两位原有目标用户均已开通且无到期时间。前端已使用真实登录态通过生产目录、缺失提示及正文联调；刷新“播客”即可查看 English Pod，手机听感仍需实际验收。详见 [English Pod 上线记录](deploy/ENGLISHPOD-IMPORT-2026-09-30.md)。
