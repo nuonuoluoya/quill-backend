@@ -91,6 +91,8 @@ npm.cmd start
 
 ## 提交约定
 
+后端开发由后端会话负责；需要前端参与的实现、配置、交互或验收，交由现有前端会话处理，并提供接口契约、影响范围、依赖及验收要求。
+
 GitHub 仓库：[nuonuoluoya/quill-backend](https://github.com/nuonuoluoya/quill-backend)，远端名称为 `origin`。
 
 每次后端修改先更新 `D:\Quill-relative\SPEC.md` 中的相关行为、接口、约束或验收标准，再修改代码。实现后将规格同步至本仓库的 `docs/SPEC.md`，运行相关检查，再将规格、实现及相关文档一并提交并推送。`docs/SPEC.md` 是规格快照，不独立维护；缺陷修复也先明确预期行为和回归验收要求。
