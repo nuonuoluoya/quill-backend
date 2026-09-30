@@ -93,7 +93,7 @@ npm.cmd start
 
 GitHub 仓库：[nuonuoluoya/quill-backend](https://github.com/nuonuoluoya/quill-backend)，远端名称为 `origin`。
 
-每次后端修改先更新 `D:\agent\SPEC\Quill\SPEC.md` 中的相关行为、接口、约束或验收标准，再修改代码。实现后将规格同步至本仓库的 `docs/SPEC.md`，运行相关检查，再将规格、实现及相关文档一并提交并推送。`docs/SPEC.md` 是规格快照，不独立维护；缺陷修复也先明确预期行为和回归验收要求。
+每次后端修改先更新 `D:\Quill-relative\SPEC.md` 中的相关行为、接口、约束或验收标准，再修改代码。实现后将规格同步至本仓库的 `docs/SPEC.md`，运行相关检查，再将规格、实现及相关文档一并提交并推送。`docs/SPEC.md` 是规格快照，不独立维护；缺陷修复也先明确预期行为和回归验收要求。
 
 特性、配置、启动方式或接口发生变化时，在同一次提交中更新本 README，并运行相关检查。只提交示例配置，不提交实际凭据或运行数据。
 
