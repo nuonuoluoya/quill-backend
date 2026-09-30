@@ -477,7 +477,8 @@
                 "book",
                 "blog",
                 "movie",
-                "tv"
+                "tv",
+                "podcast"
               ]
             },
             "description": "Omit for all types; cursor is bound to this filter."
@@ -2376,6 +2377,29 @@
         ],
         "additionalProperties": false
       },
+      "PodcastEpisode": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "title"
+        ],
+        "additionalProperties": false
+      },
       "Book": {
         "type": "object",
         "properties": {
@@ -2385,7 +2409,8 @@
               "book",
               "blog",
               "movie",
-              "tv"
+              "tv",
+              "podcast"
             ]
           },
           "unitCount": {
@@ -2435,6 +2460,12 @@
               "$ref": "#/components/schemas/Season"
             }
           },
+          "episodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PodcastEpisode"
+            }
+          },
           "chapters": {
             "type": "array",
             "items": {
@@ -2454,6 +2485,7 @@
           "contentScope",
           "visibility",
           "seasons",
+          "episodes",
           "chapters"
         ],
         "additionalProperties": false
@@ -2467,6 +2499,16 @@
           "episodeNumber": {
             "type": "integer",
             "minimum": 1
+          },
+          "episodeId": {
+            "type": "string"
+          },
+          "part": {
+            "type": "string",
+            "enum": [
+              "dialogue",
+              "lesson"
+            ]
           },
           "id": {
             "type": "string"
@@ -2510,13 +2552,18 @@
             "type": "integer",
             "minimum": 0
           },
+          "episodeCount": {
+            "type": "integer",
+            "minimum": 0
+          },
           "contentType": {
             "type": "string",
             "enum": [
               "book",
               "blog",
               "movie",
-              "tv"
+              "tv",
+              "podcast"
             ]
           },
           "unitCount": {
@@ -2583,6 +2630,7 @@
         },
         "required": [
           "seasonCount",
+          "episodeCount",
           "contentType",
           "unitCount",
           "bookId",
@@ -2727,6 +2775,16 @@
           "episodeNumber": {
             "type": "integer",
             "minimum": 1
+          },
+          "episodeId": {
+            "type": "string"
+          },
+          "part": {
+            "type": "string",
+            "enum": [
+              "dialogue",
+              "lesson"
+            ]
           },
           "bookId": {
             "type": "string"

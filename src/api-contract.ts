@@ -20,7 +20,7 @@ const base = {
   clientMutationId: { type: 'string', format: 'uuid' },
 };
 const contentType = { type: 'string', enum: [...contentTypes] };
-const episodeFields = { seasonId: string, episodeNumber: { ...integer, minimum: 1 } };
+const episodeFields = { seasonId: string, episodeNumber: { ...integer, minimum: 1 }, episodeId: string, part: { type: 'string', enum: ['dialogue', 'lesson'] } };
 const withOptional = (properties: Record<string, any>, optional: string[]) =>
   object(properties, Object.keys(properties).filter(k => !optional.includes(k)));
 const book = {
@@ -44,7 +44,8 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       user: object({ id: string }),
     }),
     Season: object({ id: identity, title: string, order: { ...integer, minimum: 1 } }),
-    Book: withOptional({ ...book, seasons: array(ref('Season')), chapters: array(ref('ChapterEntry')) }, ['coverUrl']),
+    PodcastEpisode: object({ id: identity, number: { ...integer, minimum: 1 }, title: string }),
+    Book: withOptional({ ...book, seasons: array(ref('Season')), episodes: array(ref('PodcastEpisode')), chapters: array(ref('ChapterEntry')) }, ['coverUrl']),
     ChapterEntry: withOptional({
       ...episodeFields,
       id: string,
@@ -53,9 +54,10 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       playableCount: integer,
       duration: { type: 'number' },
       chapterAudioStatus: { type: 'string', enum: ['available', 'unavailable'] },
-    }, ['seasonId', 'episodeNumber']),
+    }, ['seasonId', 'episodeNumber', 'episodeId', 'part']),
     BookSummary: withOptional({
       seasonCount: integer,
+      episodeCount: integer,
       ...book,
       chapterCount: integer,
       contentChapterCount: integer,
@@ -98,7 +100,7 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
       chapterDuration: { type: 'number', minimum: 0 },
       chapterAudio: ref('AudioInfo'),
       sentences: array(ref('Sentence')),
-    }, ['seasonId', 'episodeNumber']),
+    }, ['seasonId', 'episodeNumber', 'episodeId', 'part']),
     Playback: object({
       audioId: string,
       url: { type: 'string', format: 'uri' },

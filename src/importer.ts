@@ -79,7 +79,7 @@ export async function validatePackage(directory: string): Promise<ValidatedPacka
   const rootFile = await load('book.json'),
     book = JSON.parse(await readFile(rootFile.absolute, 'utf8'));
   assert(vb(book), `书籍 Schema 无效：${ajv.errorsText(vb.errors)}`);
-  assert(vm(book), `内容类型/分季 Schema 无效：${ajv.errorsText(vm.errors)}`);
+  assert(vm(book), `内容类型/目录 Schema 无效：${ajv.errorsText(vm.errors)}`);
   validateContentMetadata(book);
   assert(book.buildId.length <= 512 && book.textRevision.length <= 512, '版本标识超过 512 字符');
   const ids = new Set<string>(),
@@ -308,6 +308,7 @@ export class ImportService {
       contentType: b.contentType ?? 'book',
       unitCount: b.chapters.length,
       seasons: b.seasons ?? [],
+      episodes: b.episodes ?? [],
       ...(b.coverUrl !== undefined ? { coverUrl: b.coverUrl } : {}),
       bookId: id,
       buildId: build,

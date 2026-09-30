@@ -451,8 +451,78 @@ describe('Content types and optional TV seasons', () => {
     expect((await request(server.app.getHttpServer()).post(`/v1/books/typed-movie-private/builds/${contentBuild}/sentences/c01-s0001/playback`).set('Authorization', `Bearer ${bob.accessToken}`)).status).toBe(403);
     expect((await get('/v1/books?contentType=movie&audience=member')).status).toBe(401);
   });
+  it('serves private podcast episodes with missing parts, distinct playback and stable progress', async () => {
+    const bookId = 'typed-podcast';
+    const dir = await packageFor(bookId, 'podcast');
+    const path = resolve(dir, 'book.json');
+    const b = JSON.parse(await readFile(path, 'utf8'));
+    b.episodes = [{ id: 'ep001', number: 1, title: 'First topic' }, { id: 'ep010', number: 10, title: 'Tenth topic' }];
+    b.chapters.forEach((c: any, i: number) => { c.episodeId = i < 2 ? 'ep001' : 'ep010'; c.part = i === 0 ? 'dialogue' : 'lesson'; });
+    await writeFile(path, JSON.stringify(b));
+    await ops.import(dir, 'private', 'podcast-test');
+    await ops.publish(bookId, contentBuild, null, 'podcast-test');
+    await db.query('INSERT INTO book_access(user_id,book_id) VALUES($1,$2)', [alice.user.id, bookId]);
+    const headers = { Authorization: `Bearer ${alice.accessToken}` };
+    const listing = await get('/v1/books?audience=member&contentType=podcast').set(headers);
+    expect(listing.status).toBe(200); contract('BookPage', listing.body.data);
+    expect(listing.body.data.items).toHaveLength(1);
+    expect(listing.body.data.items[0]).toMatchObject({ bookId, contentType: 'podcast', episodeCount: 2, chapterCount: 3, unitCount: 3, seasonCount: 0 });
+    expect(listing.body.data.items[0].episodes).toBeUndefined();
+    expect(listing.body.data.items[0].chapters).toBeUndefined();
+    const current = (await get('/v1/books/' + bookId).set(headers)).body.data;
+    contract('Book', current);
+    expect(current.episodes).toEqual(b.episodes);
+    expect(current.chapters.map((c: any) => [c.id,c.episodeId,c.part])).toEqual([
+      ['c01','ep001','dialogue'],['c02','ep001','lesson'],['c03','ep010','lesson'],
+    ]);
+    expect((await get('/v1/books?contentType=podcast')).body.data.items).toEqual([]);
+    expect((await get('/v1/books?audience=member&contentType=podcast').set('Authorization', `Bearer ${bob.accessToken}`)).body.data.items).toEqual([]);
+    expect((await get('/v1/books/' + bookId)).status).toBe(401);
+    expect((await get('/v1/books/' + bookId).set('Authorization', `Bearer ${bob.accessToken}`)).status).toBe(403);
+    const sounds = [];
+    for (const cid of ['c01','c02']) {
+      const chapter = (await get(`/v1/books/${bookId}/builds/${contentBuild}/chapters/${cid}`).set(headers)).body.data;
+      contract('Chapter', chapter);
+      expect(chapter.episodeId).toBe('ep001');
+      const play = await request(server.app.getHttpServer()).post(`/v1/books/${bookId}/builds/${contentBuild}/sentences/${cid}-s0001/playback`).set(headers);
+      expect(play.status).toBe(201);
+      sounds.push(play.body.data.audioId);
+      const url = new URL(play.body.data.url);
+      expect((await get(url.pathname+url.search).set('Range','bytes=0-15')).status).toBe(206);
+    }
+    expect(new Set(sounds).size).toBe(2);
+    const progress = await request(server.app.getHttpServer()).put('/v1/me/progress/' + bookId).set(headers)
+      .send({ ...mutation(), sourceBuildId: contentBuild, chapterId: 'c02', sentenceId: 'c02-s0001' });
+    expect(progress.status).toBe(200);
+    expect((await get(`/v1/me/progress/${bookId}?textRevision=${revision}`).set(headers)).body.data.progress).toMatchObject({ chapterId: 'c02', sentenceId: 'c02-s0001' });
+    const movie = await get('/v1/books?contentType=movie&limit=1');
+    expect((await get('/v1/books?contentType=podcast&cursor='+encodeURIComponent(movie.body.data.nextCursor))).status).toBe(400);
+    const original = structuredClone(b);
+    const invalid = [
+      (x: any) => { delete x.episodes; },
+      (x: any) => { x.episodes = []; },
+      (x: any) => { x.episodes[1].id = 'ep001'; },
+      (x: any) => { x.episodes[1].number = 1; },
+      (x: any) => { x.episodes[0].number = 0; },
+      (x: any) => { x.episodes[0].title = ' '; },
+      (x: any) => { x.chapters[0].episodeId = 'missing'; },
+      (x: any) => { x.chapters[0].part = 'other'; },
+      (x: any) => { x.chapters[1].part = 'dialogue'; },
+      (x: any) => { x.chapters.reverse(); },
+      (x: any) => { x.episodes.push({id:'empty',number:11,title:'Empty'}); },
+      (x: any) => { x.seasons = []; },
+      (x: any) => { x.chapters[0].episodeNumber = 1; },
+      (x: any) => { x.contentType = 'book'; },
+      (x: any) => { x.contentType = 'tv'; },
+    ];
+    for (const change of invalid) {
+      const input = structuredClone(original); change(input);
+      await writeFile(path, JSON.stringify(input));
+      await expect(validatePackage(dir)).rejects.toThrow();
+    }
+  });
   it('rejects invalid types and cross-type/all cursor reuse while accepting legacy all cursors', async () => {
-    for (const query of ['contentType=podcast', 'contentType=', 'contentType=tv&contentType=book'])
+    for (const query of ['contentType=unknown', 'contentType=', 'contentType=tv&contentType=book'])
       expect((await get('/v1/books?' + query)).status).toBe(400);
     const filtered = await get('/v1/books?contentType=movie&limit=1');
     const cursor = encodeURIComponent(filtered.body.data.nextCursor);
