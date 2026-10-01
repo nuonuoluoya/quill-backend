@@ -45,16 +45,32 @@ export class AuthService {
     }
     if (!data.openid || data.errcode)
       throw new Fault(400, 'LOGIN_CODE_INVALID', '登录凭证无效，请重新登录');
-    return this.session(config.appid, data.openid);
+    return this.session(config.appid, data.openid, true);
   }
   /** Used by WeChat login and isolated tests/explicit local CLI, never a public mock-login endpoint. */
-  async session(appid: string, openid: string) {
+  async session(appid: string, openid: string, welcomeGrant = false) {
     return this.db.transaction(async (tx) => {
+      const candidateId = randomUUID();
       const { rows } = await tx.query(
         'INSERT INTO users(id,appid,openid) VALUES($1,$2,$3) ON CONFLICT(appid,openid) DO UPDATE SET appid=EXCLUDED.appid RETURNING id,disabled',
-        [randomUUID(), appid, openid],
+        [candidateId, appid, openid],
       );
       if (rows[0].disabled) throw new Fault(403, 'ACCOUNT_DISABLED', '该账号不可用');
+      if (rows[0].id === candidateId && welcomeGrant && config.newUserBookId) {
+        const granted = await tx.query(
+          `INSERT INTO book_access(user_id,book_id)
+           SELECT $1,b.book_id FROM books b JOIN book_builds v
+           ON v.book_id=b.book_id AND v.build_id=b.active_build_id
+           WHERE b.book_id=$2 AND b.visibility='private' AND v.status='active'
+           RETURNING book_id`, [candidateId, config.newUserBookId],
+        );
+        if (!granted.rows.length)
+          throw new Fault(503, 'SERVICE_UNAVAILABLE', '新用户内容暂不可用，请稍后重试');
+        await tx.query(
+          "INSERT INTO content_audits(actor,action,book_id,details) VALUES('wechat-registration','new-user-grant',$1,$2)",
+          [config.newUserBookId, JSON.stringify({ userId: candidateId })],
+        );
+      }
       const accessToken = randomBytes(32).toString('base64url'),
         expiresAt = new Date(Date.now() + 7200000).toISOString();
       await tx.query('INSERT INTO sessions(token_hash,user_id,expires_at) VALUES($1,$2,$3)', [

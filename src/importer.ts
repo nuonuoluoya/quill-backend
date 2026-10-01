@@ -214,6 +214,7 @@ export class ImportService {
       b = p.book,
       id = b.book.id,
       build = b.buildId;
+    assert(b.previewOfBookId === undefined || visibility === 'sample-public', '预览必须以公开样本导入');
     const prior = await this.db.query(
       'SELECT digest,status FROM book_builds WHERE book_id=$1 AND build_id=$2',
       [id, build],
@@ -305,6 +306,7 @@ export class ImportService {
       await this.storage.put(a.objectKey, data, a.f.hash);
     }
     const dto: Book = {
+      ...(b.previewOfBookId !== undefined ? {previewOfBookId:b.previewOfBookId, lockedChapters:b.lockedChapters} : {}),
       contentType: b.contentType ?? 'book',
       unitCount: b.chapters.length,
       seasons: b.seasons ?? [],

@@ -2400,6 +2400,29 @@
         ],
         "additionalProperties": false
       },
+      "LockedChapter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "title": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "number"
+        ],
+        "additionalProperties": false
+      },
       "Book": {
         "type": "object",
         "properties": {
@@ -2453,6 +2476,15 @@
               "sample-public",
               "private"
             ]
+          },
+          "previewOfBookId": {
+            "type": "string"
+          },
+          "lockedChapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LockedChapter"
+            }
           },
           "seasons": {
             "type": "array",

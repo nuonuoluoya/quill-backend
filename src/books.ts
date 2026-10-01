@@ -60,7 +60,7 @@ export class BooksService {
       [after, audience, user, limit + 1, contentType ?? null],
     );
     const items: BookSummary[] = rows.slice(0, limit).map((r) => {
-      const { chapters, seasons, episodes, ...book } = normalizeBook(r.metadata as Book);
+      const { chapters, seasons, episodes, previewOfBookId, lockedChapters, ...book } = normalizeBook(r.metadata as Book);
       return {
         ...book,
         seasonCount: seasons.length,

@@ -158,3 +158,20 @@ npm.cmd run cli -- grant "<手机微信账号user.id>" <bookId>
 使用 `npx.cmd tsx scripts/prepare-englishpod.ts SOURCE NEW_OUTPUT_DIRECTORY` 适配源包，再执行 CLI validate/import/publish/grant。输出目录必须新建且位于源目录之外，原始文件不改动。365 期的 8 处缺源保留缺失状态，待复核句不开放播放，不合成整期音频。详见 [内容类型与播客导入说明](docs/CONTENT-TYPES.md)。前端由前端会话接入，生产部署及内容导入结果以独立上线记录为准。
 
 后端播客实现已通过 34 项回归、类型、Schema/OpenAPI、构建及完整素材校验；[English Pod 上线计划](deploy/ENGLISHPOD-PLAN-2026-09-30.md)列出具体发布范围和步骤。2026-09-30 已经用户明确授权部署 `4fa1e86` 并完成私人内容导入：365 期、722 部分、88,995 句可播放，两位原有目标用户均已开通且无到期时间。前端已使用真实登录态通过生产目录、缺失提示及正文联调；刷新“播客”即可查看 English Pod，手机听感仍需实际验收。详见 [English Pod 上线记录](deploy/ENGLISHPOD-IMPORT-2026-09-30.md)。
+
+## 第一章游客预览与新用户赠书
+
+游客入口使用独立 `hp1-chapter1-preview`（`sample-public` / `sample`），原 `hp1-en` 整本保持私人内容。预览详情 `chapters` 仅含第一章，`previewOfBookId` 指向私人原书，`lockedChapters` 只包含后续章的 `{id,title,number}`，供前端展示锁章并引导自主登录；两项预览字段不进入摘要。锁章没有正文或音频，不能从预览接口读取。预览与整书的版本、媒体身份和进度互相独立。
+
+管理端按已核实的源活动构建准备新包，再校验、导入并发布。以下命令只用于运营方明确授权公开第一章的内容；原书可见性不变，源包/数据库不会因准备操作被改写。输出目录必须不存在，父目录须存在，音频逐个校验后才复制；完整正文和媒体不进入 Git。
+
+```powershell
+npm.cmd run cli -- prepare-preview hp1-en <已核实的源buildId> hp1-chapter1-preview <全新输出目录>
+npm.cmd run cli -- validate <输出目录>
+npm.cmd run cli -- import <输出目录> sample-public
+npm.cmd run cli -- publish hp1-chapter1-preview <准备命令输出的buildId> none
+```
+
+生产运行时设置 `NEW_USER_BOOK_ID=hp1-en` 后，真实微信首次建号自动授予完整第一部，立即生效且无到期时间；随后前端使用 `audience=member` 访问。默认空值关闭赠书，修改需重启 API。既有账号登录不补授，撤销或到期权限不恢复，本地开发会话不赠书，其他内容权限不变。目标不存在、非私人或未有效发布时，首次登录返回 `503 SERVICE_UNAVAILABLE`，账号/权限/会话事务整体回滚；管理员恢复目标或关闭配置后可重试。并发首次登录仅产生一次 `new-user-grant` 审计，不调用公开管理接口。
+
+游客仍可主动阅读和播放第一章，无需登录；待复核句继续不可播放。公开预览的全文音频能力以源第一章实际素材为准，不生成缺失音频。部署与实测结果记录在后续生产验收中；自动化通过不等于微信审核通过或真机听感验收完成。

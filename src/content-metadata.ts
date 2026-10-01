@@ -6,6 +6,16 @@ const assert = (ok: unknown, message: string) => { if (!ok) throw Error(message)
 export function validateContentMetadata(book: any) {
   const type: ContentType = book.contentType ?? 'book';
   const seasons: Season[] = book.seasons ?? [];
+  if ('previewOfBookId' in book || 'lockedChapters' in book) {
+    assert(type === 'book' && book.contentScope === 'sample' && book.chapters.length === 1 &&
+      typeof book.previewOfBookId === 'string' && book.previewOfBookId !== book.book.id &&
+      Array.isArray(book.lockedChapters), '预览必须为独立单章书籍样本并成对提供来源和锁章目录');
+    const ids = new Set(book.chapters.map((c: any) => c.id));
+    for (const [i, chapter] of book.lockedChapters.entries()) {
+      assert(!ids.has(chapter.id) && chapter.number === i + 2, '锁章 ID 重复或章序号不连续');
+      ids.add(chapter.id);
+    }
+  }
   if (book.coverUrl !== undefined) {
     const url = new URL(book.coverUrl);
     assert(url.protocol === 'https:' && !!url.hostname && !url.username && !url.password,

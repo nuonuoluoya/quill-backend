@@ -40,7 +40,10 @@ export interface ChapterEntry {
   duration: number;
   chapterAudioStatus: AudioInfo['status'];
 }
+export interface LockedChapter { id: string; title: string; number: number; }
 export interface Book {
+  previewOfBookId?: string;
+  lockedChapters?: LockedChapter[];
   contentType: ContentType;
   unitCount: number;
   coverUrl?: string;
@@ -56,7 +59,7 @@ export interface Book {
   visibility: Visibility;
   chapters: ChapterEntry[];
 }
-export interface BookSummary extends Omit<Book, 'chapters' | 'seasons' | 'episodes'> {
+export interface BookSummary extends Omit<Book, 'chapters' | 'seasons' | 'episodes' | 'previewOfBookId' | 'lockedChapters'> {
   seasonCount: number;
   episodeCount: number;
   chapterCount: number;

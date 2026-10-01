@@ -45,7 +45,8 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
     }),
     Season: object({ id: identity, title: string, order: { ...integer, minimum: 1 } }),
     PodcastEpisode: object({ id: identity, number: { ...integer, minimum: 1 }, title: string }),
-    Book: withOptional({ ...book, seasons: array(ref('Season')), episodes: array(ref('PodcastEpisode')), chapters: array(ref('ChapterEntry')) }, ['coverUrl']),
+    LockedChapter: object({id: identity, title: string, number: {...integer, minimum: 2}}),
+    Book: withOptional({ ...book, previewOfBookId: string, lockedChapters: array(ref('LockedChapter')), seasons: array(ref('Season')), episodes: array(ref('PodcastEpisode')), chapters: array(ref('ChapterEntry')) }, ['coverUrl', 'previewOfBookId', 'lockedChapters']),
     ChapterEntry: withOptional({
       ...episodeFields,
       id: string,

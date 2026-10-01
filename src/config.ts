@@ -25,6 +25,7 @@ export const config = {
   devDbPath: data,
   mediaRoot: projectPath(process.env.MEDIA_ROOT || '.data/media'),
   secret: signingSecret(),
+  newUserBookId: process.env.NEW_USER_BOOK_ID?.trim() || '',
   appid: process.env.WECHAT_APP_ID || '',
   appSecret: process.env.WECHAT_APP_SECRET || '',
   corsOrigin: process.env.CORS_ORIGIN || 'http://127.0.0.1:5178',
@@ -44,3 +45,6 @@ if (
     !config.publicBase.startsWith('https://'))
 )
   throw new Error('Production requires PostgreSQL, WeChat credentials and HTTPS PUBLIC_BASE_URL');
+
+if (config.newUserBookId && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(config.newUserBookId))
+  throw new Error('NEW_USER_BOOK_ID must be a valid book ID');

@@ -3,6 +3,7 @@ import { ImportService, validatePackage } from './importer.js';
 import { Storage } from './storage.js';
 import { AuthService } from './auth.js';
 import { production } from './config.js';
+import { prepareFirstChapterPreview } from './preview.js';
 import { seedSamples } from './seed.js';
 const [command, ...args] = process.argv.slice(2),
   actor = process.env.OPERATOR_ID || 'local-operator';
@@ -10,7 +11,10 @@ const db = new Database(),
   ops = new ImportService(db, new Storage());
 try {
   if (!production) await db.migrate();
-  if (command === 'validate') {
+  if (command === 'prepare-preview') {
+    if (args.length !== 4) throw Error('Usage: prepare-preview SOURCE EXPECTED_BUILD TARGET NEW_DIRECTORY');
+    console.log(await prepareFirstChapterPreview(db, new Storage(), args[0], args[1], args[2], args[3]));
+  } else if (command === 'validate') {
     const p = await validatePackage(args[0]);
     console.log({
       bookId: p.book.book.id,
@@ -66,7 +70,7 @@ try {
     );
   } else
     throw Error(
-      'Commands: validate PATH | import PATH private|sample-public | publish/rollback BOOK BUILD EXPECTED | grant/revoke-access USER BOOK | revoke-build BOOK BUILD | seed | dev-session NAME | maintenance',
+      'Commands: prepare-preview SOURCE EXPECTED_BUILD TARGET NEW_DIRECTORY | validate PATH | import PATH private|sample-public | publish/rollback BOOK BUILD EXPECTED | grant/revoke-access USER BOOK | revoke-build BOOK BUILD | seed | dev-session NAME | maintenance',
     );
 } catch (e) {
   console.error(e instanceof Error ? e.message : 'Operation failed');
