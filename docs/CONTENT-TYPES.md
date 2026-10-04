@@ -105,3 +105,9 @@ npm.cmd run cli -- validate D:\quill-backend\.data\englishpod-package
 缺教学：32、43、58、337；缺对话：96、158、164、288。合集 contentScope=sample 表示材料不完整，导入时必须选择 private，不得改为公开样本。不自动合成整期音频。
 
 生产先部署支持 podcast 的 API/CLI，再使用现有 import/publish/grant 流程。代码推送不等于素材上线；需验证实际音频时长、完整性、权限和缺源目录。
+
+## 待复核音频
+
+仅在运营方明确允许时，导入包book.json顶层设置 `allowReviewAudio: true`。此时needs_review句可以提供真实audio路径和有限正duration，但必须保留非空alignment.reasons；也可保留null/null表示缺源。默认不启用，unmatched/excluded始终不开放音频；格式、时长、哈希与引用校验不放宽。playableCount统计实际可播放音频，不能由“待复核”状态直接推断缺源。
+
+支持该能力的客户端读取内容时发送 `X-Quill-Capabilities: review-audio-v1`。返回needs_review且有有效audioId/duration的句子允许播放，仍应显示待复核提示；缺音仍禁用。没有能力头的列表/详情/章节按旧语义投影为待复核空音频并扣除相应计数，保持旧客户端可读。能力头不替代身份/书籍授权；分页游标不能跨能力模式复用，内部reviewAudioCounts不属于公开DTO。

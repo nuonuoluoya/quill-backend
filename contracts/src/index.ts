@@ -133,7 +133,7 @@ export interface Envelope<T> {
   requestId: string;
 }
 export const playable = (s: Sentence) =>
-  (s.alignment.status === 'verified' || s.alignment.status === 'auto_passed') &&
+  ['verified', 'auto_passed', 'needs_review'].includes(s.alignment.status) &&
   !!s.audioId &&
   (s.duration ?? 0) > 0;
 export function searchSentences(sentences: Sentence[], query: string) {

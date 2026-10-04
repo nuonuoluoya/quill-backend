@@ -35,9 +35,18 @@ export async function readable(
     throw new Fault(410, 'BUILD_RETIRED', '此内容版本已到期，请更新');
   return { book, build };
 }
+// Stored review counts are internal metadata; never expose them in the HTTP contract.
+function presentBook(value: Book & { reviewAudioCounts?: Record<string, number> }, reviewAudio: boolean): Book {
+  const { reviewAudioCounts, ...base } = value;
+  const book = normalizeBook(base);
+  return reviewAudio || !reviewAudioCounts ? book : {
+    ...book,
+    chapters: book.chapters.map(c => ({ ...c, playableCount: c.playableCount - (reviewAudioCounts[c.id] ?? 0) })),
+  };
+}
 export class BooksService {
   constructor(private db: Database) {}
-  async list(user: string | null, audience: string, limit: number, cursor?: string, contentType?: ContentType) {
+  async list(user: string | null, audience: string, limit: number, cursor?: string, contentType?: ContentType, reviewAudio = false) {
     if (audience === 'member' && !user)
       throw new Fault(401, 'SESSION_EXPIRED', '登录后查看我的书籍');
     let after = '';
@@ -47,7 +56,7 @@ export class BooksService {
         if (extra !== undefined || !signature || !equal(signature, sign(body))) throw Error();
         const c = JSON.parse(Buffer.from(body, 'base64url').toString());
         if (c.audience !== audience || c.user !== user || typeof c.after !== 'string' ||
-          (c.contentType ?? null) !== (contentType ?? null))
+          (c.contentType ?? null) !== (contentType ?? null) || (c.reviewAudio ?? false) !== reviewAudio)
           throw Error();
         after = c.after;
       } catch {
@@ -60,7 +69,7 @@ export class BooksService {
       [after, audience, user, limit + 1, contentType ?? null],
     );
     const items: BookSummary[] = rows.slice(0, limit).map((r) => {
-      const { chapters, seasons, episodes, previewOfBookId, lockedChapters, ...book } = normalizeBook(r.metadata as Book);
+      const { chapters, seasons, episodes, previewOfBookId, lockedChapters, ...book } = presentBook(r.metadata as Book, reviewAudio);
       return {
         ...book,
         seasonCount: seasons.length,
@@ -76,24 +85,25 @@ export class BooksService {
       };
     });
     const body = Buffer.from(
-      JSON.stringify({ user, audience, contentType: contentType ?? null, after: items.at(-1)?.bookId }),
+      JSON.stringify({ user, audience, contentType: contentType ?? null, reviewAudio, after: items.at(-1)?.bookId }),
     ).toString('base64url');
     return { items, nextCursor: rows.length > limit ? `${body}.${sign(body)}` : null };
   }
-  async current(bookId: string, user: string | null) {
+  async current(bookId: string, user: string | null, reviewAudio = false) {
     const b = await access(this.db, bookId, user);
     if (!b.active_build_id) throw new Fault(503, 'CONTENT_UNAVAILABLE', '本书暂无可用内容');
-    return this.snapshot(bookId, b.active_build_id, user);
+    return this.snapshot(bookId, b.active_build_id, user, reviewAudio);
   }
-  async snapshot(bookId: string, buildId: string, user: string | null): Promise<Book> {
+  async snapshot(bookId: string, buildId: string, user: string | null, reviewAudio = false): Promise<Book> {
     const { build, book } = await readable(this.db, bookId, buildId, user);
-    return { ...normalizeBook(build.metadata), visibility: book.visibility };
+    return { ...presentBook(build.metadata, reviewAudio), visibility: book.visibility };
   }
   async chapter(
     bookId: string,
     buildId: string,
     chapterId: string,
     user: string | null,
+    reviewAudio = false,
   ): Promise<Chapter> {
     await readable(this.db, bookId, buildId, user);
     const { rows } = await this.db.query(
@@ -101,7 +111,9 @@ export class BooksService {
       [bookId, buildId, chapterId],
     );
     if (!rows[0]) throw new Fault(404, 'CHAPTER_NOT_FOUND', '章节不存在');
-    return rows[0].content;
+    const chapter: Chapter = rows[0].content;
+    return reviewAudio ? chapter : { ...chapter, sentences: chapter.sentences.map(s =>
+      s.alignment.status === 'needs_review' ? { ...s, audioId: null, duration: null } : s) };
   }
   async playback(
     bookId: string,

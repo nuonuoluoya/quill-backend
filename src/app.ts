@@ -82,6 +82,7 @@ class ApiController {
   @Get('books') async list(
     @Headers('authorization') h: string | undefined,
     @Query() q: Record<string, string>,
+    @Headers('x-quill-capabilities') capabilities?: string,
   ) {
     const parsed = z
       .object({
@@ -99,25 +100,29 @@ class ApiController {
       parsed.data.limit,
       parsed.data.cursor,
       parsed.data.contentType,
+      supportsReviewAudio(capabilities),
     );
   }
   @Get('books/:bookId') async book(
     @Headers('authorization') h: string | undefined,
     @Param('bookId') b: string,
+    @Headers('x-quill-capabilities') capabilities?: string,
   ) {
-    return this.s.books.current(b, await this.s.auth.identity(h));
+    return this.s.books.current(b, await this.s.auth.identity(h), supportsReviewAudio(capabilities));
   }
   @Get('books/:bookId/builds/:buildId') async snapshot(
     @Headers('authorization') h: string | undefined,
     @Param() p: any,
+    @Headers('x-quill-capabilities') capabilities?: string,
   ) {
-    return this.s.books.snapshot(p.bookId, p.buildId, await this.s.auth.identity(h));
+    return this.s.books.snapshot(p.bookId, p.buildId, await this.s.auth.identity(h), supportsReviewAudio(capabilities));
   }
   @Get('books/:bookId/builds/:buildId/chapters/:chapterId') async chapter(
     @Headers('authorization') h: string | undefined,
     @Param() p: any,
+    @Headers('x-quill-capabilities') capabilities?: string,
   ) {
-    return this.s.books.chapter(p.bookId, p.buildId, p.chapterId, await this.s.auth.identity(h));
+    return this.s.books.chapter(p.bookId, p.buildId, p.chapterId, await this.s.auth.identity(h), supportsReviewAudio(capabilities));
   }
   @Post('books/:bookId/builds/:buildId/sentences/:sentenceId/playback') async sentencePlay(
     @Headers('authorization') h: string | undefined,
@@ -179,6 +184,10 @@ class ApiController {
     return { status: 'ready' };
   }
 }
+function supportsReviewAudio(value?: string) {
+  return typeof value === 'string' && value.split(',').some(token => token.trim() === 'review-audio-v1');
+}
+
 export async function createApp(db = new Database(), storage = new Storage(), migrate = !production) {
   if (migrate) await db.migrate();
   const services = new Services(db, storage);
@@ -193,6 +202,7 @@ export async function createApp(db = new Database(), storage = new Storage(), mi
     res.setHeader('X-Request-Id', res.locals.requestId);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'private, no-store');
+    if (req.path.toLowerCase().startsWith('/v1/books')) res.vary('X-Quill-Capabilities');
     if (process.env.REQUEST_LOG === '1')
       res.on('finish', () =>
         console.log(

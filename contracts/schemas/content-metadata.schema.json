@@ -136,6 +136,10 @@
         ],
         "additionalProperties": false
       }
+    },
+    "allowReviewAudio": {
+      "type": "boolean",
+      "description": "Explicit opt-in to import needs_review sentences with validated audio; default false. Review status and reasons are retained."
     }
   },
   "additionalProperties": true

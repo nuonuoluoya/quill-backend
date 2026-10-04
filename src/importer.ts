@@ -110,7 +110,10 @@ export async function validatePackage(directory: string): Promise<ValidatedPacka
     for (const [i, s] of c.sentences.entries()) {
       assert(!ids.has(s.id) && s.index === i + 1, '句子重复或序号不连续');
       ids.add(s.id);
-      const can = ['verified', 'auto_passed'].includes(s.alignment.status);
+      const review = s.alignment.status === 'needs_review';
+      if (review) assert(s.alignment.reasons.some((r: string) => r.trim()), '待复核句必须保留原因');
+      const can = ['verified', 'auto_passed'].includes(s.alignment.status) ||
+        (book.allowReviewAudio === true && review && s.audio !== null);
       if (can) {
         assert(
           typeof s.audio === 'string' && Number.isFinite(s.duration) && s.duration > 0,
@@ -306,7 +309,13 @@ export class ImportService {
       assert(sha(data) === a.f.hash, '校验后文件被修改');
       await this.storage.put(a.objectKey, data, a.f.hash);
     }
-    const dto: Book = {
+    const reviewAudioCounts: Record<string, number> = {};
+    for (const c of chapterDtos) {
+      const count = c.sentences.filter(s => s.alignment.status === 'needs_review' && s.audioId).length;
+      if (count) reviewAudioCounts[c.chapterId] = count;
+    }
+    const dto: Book & { reviewAudioCounts?: Record<string, number> } = {
+      ...(Object.keys(reviewAudioCounts).length ? { reviewAudioCounts } : {}),
       ...(b.previewOfBookId !== undefined ? {previewOfBookId:b.previewOfBookId, lockedChapters:b.lockedChapters} : {}),
       contentType: b.contentType ?? 'book',
       unitCount: b.chapters.length,

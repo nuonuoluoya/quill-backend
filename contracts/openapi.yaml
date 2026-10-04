@@ -440,6 +440,15 @@
         "operationId": "ApiController_list",
         "parameters": [
           {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          },
+          {
             "name": "audience",
             "in": "query",
             "schema": {
@@ -631,6 +640,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
           }
         ],
         "responses": {
@@ -788,6 +806,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
           }
         ],
         "responses": {
@@ -953,6 +980,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
           }
         ],
         "responses": {
@@ -2782,7 +2818,8 @@
           },
           "audioId": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "With review-audio-v1 capability, needs_review may carry playable audio; review status is preserved."
           },
           "alignment": {
             "$ref": "#/components/schemas/Alignment"

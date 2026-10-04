@@ -87,7 +87,7 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
         text: string,
         sourceText: string,
         duration: nullableNumber,
-        audioId: nullableString,
+        audioId: { ...nullableString, description: 'With review-audio-v1 capability, needs_review may carry playable audio; review status is preserved.' },
         alignment: ref('Alignment'),
       },
       ['id', 'index', 'text', 'duration', 'audioId', 'alignment'],
@@ -187,6 +187,9 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
         required: true,
         schema: string,
       }));
+      if (method === 'get' && path.startsWith('/v1/books'))
+        route.parameters.push({ name: 'X-Quill-Capabilities', in: 'header', required: false,
+          schema: string, description: 'Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection.' });
       if (path === '/v1/books')
         route.parameters.push(
           {
