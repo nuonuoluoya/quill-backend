@@ -185,3 +185,7 @@ npm.cmd run cli -- publish hp1-chapter1-preview <准备命令输出的buildId> n
 同一内容构建重导时，包摘要与可见性都必须匹配。把已公开内容按 private 重导（或反向）会明确拒绝，不会隐式更改可见性，也不会以 reused 成功掩盖范围冲突；既有发布、授权和审计不受影响。
 
 `npm run contract:check` 兼容 Windows CRLF 与 LF 快照，仍拒绝字段/类型变化、非换行空白和其他真实漂移。生成契约继续使用 LF。本轮验证在隔离原创夹具和测试库进行，代码提交不代表已部署生产。
+
+测试工具固定为 `vitest@4.1.11`，使用 `vitest run` 的 Node/forks 模式，不启动 UI、浏览器或 API 监听服务。新版配置移除不再支持的 `minWorkers`，仍通过 `maxWorkers: 1` 与 `fileParallelism: false` 串行运行测试。开发环境继续要求 Node >=22.12；本轮已在 Node 24.11.0 与最低支持版本 22.12.0 上通过全部 44 项测试，并在 22.12.0 上通过类型、测试配置类型、Schema/OpenAPI 与构建检查。
+
+2026-10-04 更新锁文件后的完整 `npm audit --json` 和 `npm audit --omit=dev --json` 均为 0 项漏洞；生产依赖的版本与完整性记录未变。此次升级仅涉及开发测试工具，不代表已部署生产。
