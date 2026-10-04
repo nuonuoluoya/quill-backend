@@ -189,3 +189,5 @@ npm.cmd run cli -- publish hp1-chapter1-preview <准备命令输出的buildId> n
 测试工具固定为 `vitest@4.1.11`，使用 `vitest run` 的 Node/forks 模式，不启动 UI、浏览器或 API 监听服务。新版配置移除不再支持的 `minWorkers`，仍通过 `maxWorkers: 1` 与 `fileParallelism: false` 串行运行测试。开发环境继续要求 Node >=22.12；本轮已在 Node 24.11.0 与最低支持版本 22.12.0 上通过全部 44 项测试，并在 22.12.0 上通过类型、测试配置类型、Schema/OpenAPI 与构建检查。
 
 2026-10-04 更新锁文件后的完整 `npm audit --json` 和 `npm audit --omit=dev --json` 均为 0 项漏洞；生产依赖的版本与完整性记录未变。此次升级仅涉及开发测试工具，不代表已部署生产。
+
+2026-10-04 经用户后续授权，以上修复已随代码 3d7e701 部署生产；API/数据库健康，本机及独立公网预览、私有权限边界、媒体读取验收通过，原有内容、授权和进度保留。回滚点为 52e93ce，详见 [本轮部署记录](deploy/DEPLOYMENT-2026-10-04.md)。
