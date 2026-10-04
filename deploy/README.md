@@ -11,4 +11,4 @@ docker compose exec api node dist/src/cli.js seed
 
 API / PostgreSQL 使用独立命名卷，不自动加载本机 `.data` 中的 PGlite 数据。`docker compose down` 保留卷。不要在有需保留数据时使用 `down -v`。生产部署顺序参见 [独立 PostgreSQL 部署流程](PRODUCTION-PLAN.md)；专用生产配置为 `compose.production.yaml`，不能直接使用本开发示例上线。
 
-本地开发 Compose 尚未运行验收。服务器独立生产 Compose 已更新至 `93f282a`，2026-09-30 公网 HTTPS API、分类查询和媒体验证通过，详见 [最新部署记录](DEPLOYMENT-2026-09-30.md)。小程序真实登录及真机验收另行完成。
+本地开发 Compose 尚未运行验收。服务器独立生产 Compose 当前为 `bc97de8`，2026-10-04 API及Bluey待复核音频已完成上线验收，详见 [最新部署与内容记录](BLUEY-REVIEW-AUDIO-2026-10-04.md)。小程序真实登录及真机验收另行完成。
