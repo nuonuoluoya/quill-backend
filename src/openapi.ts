@@ -9,7 +9,7 @@ try {
   const output = JSON.stringify(document, null, 2) + '\n',
     path = projectPath('contracts/openapi.yaml');
   if (process.argv.includes('--check')) {
-    if ((await readFile(path, 'utf8')) !== output)
+    if ((await readFile(path, 'utf8')).replace(/\r\n/g, '\n') !== output)
       throw Error('OpenAPI is stale. Run npm run openapi.');
     console.log('OpenAPI contract matches server');
   } else {

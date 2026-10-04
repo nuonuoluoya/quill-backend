@@ -211,10 +211,13 @@ export async function createApp(db = new Database(), storage = new Storage(), mi
   app.use((req: Request, res: Response, next: () => void) => {
     const t = Date.now();
     for (const [k, v] of buckets) if (v.until < t) buckets.delete(k);
-    if (req.path.includes('/health/')) return next();
-    const category = req.path.includes('/auth/wechat')
+    // Express routes are case-insensitive and accept one trailing slash.
+    const path = req.path.toLowerCase().replace(/\/$/, '');
+    if ((req.method === 'GET' || req.method === 'HEAD') &&
+      (path === '/v1/health/live' || path === '/v1/health/ready')) return next();
+    const category = path === '/v1/auth/wechat'
         ? 'login'
-        : req.path.startsWith('/media/')
+        : path.startsWith('/media/')
           ? 'media'
           : 'api',
       cap = category === 'login' ? 20 : category === 'media' ? 1800 : 600;

@@ -216,10 +216,11 @@ export class ImportService {
       build = b.buildId;
     assert(b.previewOfBookId === undefined || visibility === 'sample-public', '预览必须以公开样本导入');
     const prior = await this.db.query(
-      'SELECT digest,status FROM book_builds WHERE book_id=$1 AND build_id=$2',
+      'SELECT v.digest,v.status,b.visibility FROM book_builds v JOIN books b ON b.book_id=v.book_id WHERE v.book_id=$1 AND v.build_id=$2',
       [id, build],
     );
     if (prior.rows[0]) {
+      assert(prior.rows[0].visibility === visibility, '书籍可见性不可修改');
       assert(prior.rows[0].digest === p.digest, '相同 buildId 不同包，拒绝覆盖');
       if (prior.rows[0].status !== 'staged')
         return { bookId: id, buildId: build, status: prior.rows[0].status, reused: true };
