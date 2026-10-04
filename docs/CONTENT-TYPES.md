@@ -110,4 +110,4 @@ npm.cmd run cli -- validate D:\quill-backend\.data\englishpod-package
 
 仅在运营方明确允许时，导入包book.json顶层设置 `allowReviewAudio: true`。此时needs_review句可以提供真实audio路径和有限正duration，但必须保留非空alignment.reasons；也可保留null/null表示缺源。默认不启用，unmatched/excluded始终不开放音频；格式、时长、哈希与引用校验不放宽。playableCount统计实际可播放音频，不能由“待复核”状态直接推断缺源。
 
-支持该能力的客户端读取内容时发送 `X-Quill-Capabilities: review-audio-v1`。返回needs_review且有有效audioId/duration的句子允许播放，仍应显示待复核提示；缺音仍禁用。没有能力头的列表/详情/章节按旧语义投影为待复核空音频并扣除相应计数，保持旧客户端可读。能力头不替代身份/书籍授权；分页游标不能跨能力模式复用，内部reviewAudioCounts不属于公开DTO。
+支持该能力的客户端读取内容时发送 `X-Quill-Capabilities: review-audio-v1`。返回needs_review且有有效audioId/duration的句子允许播放。阅读页按用户最新要求隐藏待复核文案和原因，缺音统一显示“暂无逐句音频”并禁用；服务端仍保留审核状态及原因。没有能力头的列表/详情/章节按旧语义投影为待复核空音频并扣除相应计数，保持旧客户端可读。能力头不替代身份/书籍授权；分页游标不能跨能力模式复用，内部reviewAudioCounts不属于公开DTO。
