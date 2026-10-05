@@ -23,6 +23,9 @@ const contentType = { type: 'string', enum: [...contentTypes] };
 const episodeFields = { seasonId: string, episodeNumber: { ...integer, minimum: 1 }, episodeId: string, part: { type: 'string', enum: ['dialogue', 'lesson'] } };
 const withOptional = (properties: Record<string, any>, optional: string[]) =>
   object(properties, Object.keys(properties).filter(k => !optional.includes(k)));
+const nullableRef = (name:string) => ({oneOf:[ref(name),{type:'object',nullable:true,enum:[null]}]});
+const favoriteReference = {bookId:identity,textRevision:identity,chapterId:identity,sentenceId:identity};
+const favoriteMutation = {clientMutationId:{type:'string',format:'uuid'},clientMutationCreatedAt:{type:'string',format:'date-time',description:'UTC timestamp, fixed with the UUID on retry. New operations allow the past 24 hours and 5 minutes future skew.'}};
 const book = {
   contentType,
   unitCount: integer,
@@ -38,6 +41,15 @@ const book = {
 };
 export function completeContract(document: OpenAPIObject): OpenAPIObject {
   const schemas: Record<string, any> = {
+    FavoriteReference:object(favoriteReference),
+    FavoriteMutation:object(favoriteMutation),
+    FavoriteWrite:object({...favoriteReference,sourceBuildId:identity,...favoriteMutation}),
+    FavoriteWriteResult:object({favoriteId:string,saved:{type:'boolean'},favoritedAt:{type:'string',format:'date-time',nullable:true},version:{...integer,maximum:Number.MAX_SAFE_INTEGER}}),
+    FavoriteSource:object({bookTitle:string,chapterTitle:string,contentType,seasonTitle:nullableString,episodeTitle:nullableString,episodeNumber:{...integer,nullable:true},part:{type:'string',nullable:true,enum:['dialogue','lesson',null]}}),
+    FavoriteItem:object({favoriteId:string,favoritedAt:{type:'string',format:'date-time'},status:{type:'string',enum:['available','forbidden','text_revision_changed','content_unavailable']},reference:nullableRef('FavoriteReference'),resolvedBuildId:nullableString,sentence:nullableRef('Sentence'),source:nullableRef('FavoriteSource'),playable:{type:'boolean'}}),
+    FavoritePage:object({items:array(ref('FavoriteItem')),nextCursor:nullableString,version:integer,totalCount:integer,matchedCount:integer,playableCount:integer}),
+    FavoriteStatusWrite:object({bookId:identity,textRevision:identity,sourceBuildId:identity,chapterId:identity,sentenceIds:{...array(identity),minItems:1,maxItems:200,uniqueItems:true}}),
+    FavoriteStatusResult:object({states:array(object({sentenceId:identity,favoriteId:string,saved:{type:'boolean'}})),version:integer}),
     Session: object({
       accessToken: string,
       expiresAt: { type: 'string', format: 'date-time' },
@@ -149,7 +161,9 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
     for (const [method, op] of Object.entries(item)) {
       if (!op || !['get', 'post', 'put', 'delete'].includes(method)) continue;
       const route = op as any;
-      const name = path.endsWith('/auth/wechat')
+      const name = path.startsWith('/v1/me/favorites')
+        ? method === 'get' ? path === '/v1/me/favorites' ? 'FavoritePage' : 'FavoriteItem' : path.endsWith('/status') ? 'FavoriteStatusResult' : 'FavoriteWriteResult'
+        : path.endsWith('/auth/wechat')
         ? 'Session'
         : path.endsWith('/auth/session')
           ? 'Revoked'
@@ -166,7 +180,7 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
                     : path === '/v1/books'
                       ? 'BookPage'
                       : 'Book';
-      route.responses = { [method === 'post' ? 201 : 200]: response(name) };
+      route.responses = { [method === 'post' && path !== '/v1/me/favorites/status' ? 201 : 200]: response(name) };
       for (const status of [400, 401, 403, 404, 409, 410, 413, 422, 429, 503])
         route.responses[status] = {
           description: 'Business error (409 PROGRESS_CONFLICT details contains ProgressResult)',
@@ -187,9 +201,15 @@ export function completeContract(document: OpenAPIObject): OpenAPIObject {
         required: true,
         schema: string,
       }));
-      if (method === 'get' && path.startsWith('/v1/books'))
+      if ((method === 'get' && path.startsWith('/v1/books')) || path.startsWith('/v1/me/favorites'))
         route.parameters.push({ name: 'X-Quill-Capabilities', in: 'header', required: false,
           schema: string, description: 'Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection.' });
+      if(path.startsWith('/v1/me/favorites') && method!=='get')
+        route.requestBody={required:true,content:{'application/json':{schema:ref(method==='put'?'FavoriteWrite':method==='delete'?'FavoriteMutation':'FavoriteStatusWrite')}}};
+      if(path==='/v1/me/favorites' && method==='get')route.parameters.push(
+        {name:'limit',in:'query',schema:{type:'integer',minimum:1,maximum:50,default:20}},
+        {name:'q',in:'query',schema:{type:'string',maxLength:100,default:''},description:'Literal case-insensitive substring across all currently accessible favorite sentences, not only the loaded page.'},
+        {name:'cursor',in:'query',schema:{type:'string',maxLength:4096},description:'Bound to account, normalized q, capability and collection version; changed collection returns 409 FAVORITES_CHANGED.'});
       if (path === '/v1/books')
         route.parameters.push(
           {

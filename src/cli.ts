@@ -64,6 +64,7 @@ try {
       "UPDATE book_builds SET status='retired' WHERE status='retained' AND retain_until<=now()",
     );
     await db.query("DELETE FROM progress_mutations WHERE created_at<now()-interval '30 days'");
+    await db.query("DELETE FROM favorite_mutations WHERE created_at<now()-interval '30 days'");
     await db.query("DELETE FROM sessions WHERE expires_at<now()-interval '7 days'");
     console.log(
       'Retention states and expired session/mutation records updated; no media objects deleted',

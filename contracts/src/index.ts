@@ -157,3 +157,20 @@ export function timeLabel(seconds: number) {
     .toString()
     .padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 }
+
+export interface FavoriteReference { bookId:string; textRevision:string; chapterId:string; sentenceId:string; }
+export interface FavoriteMutation { clientMutationId:string; clientMutationCreatedAt:string; }
+export interface FavoriteWrite extends FavoriteReference, FavoriteMutation { sourceBuildId:string; }
+export interface FavoriteWriteResult { favoriteId:string; saved:boolean; favoritedAt:string|null; version:number; }
+export interface FavoriteSource {
+  bookTitle:string; chapterTitle:string; contentType:ContentType;
+  seasonTitle:string|null; episodeTitle:string|null; episodeNumber:number|null; part:PodcastPart|null;
+}
+export interface FavoriteItem {
+  favoriteId:string; favoritedAt:string;
+  status:'available'|'forbidden'|'text_revision_changed'|'content_unavailable';
+  reference:FavoriteReference|null; resolvedBuildId:string|null; sentence:Sentence|null; source:FavoriteSource|null; playable:boolean;
+}
+export interface FavoritePage { items:FavoriteItem[]; nextCursor:string|null; version:number; totalCount:number; matchedCount:number; playableCount:number; }
+export interface FavoriteStatusWrite { bookId:string; textRevision:string; sourceBuildId:string; chapterId:string; sentenceIds:string[]; }
+export interface FavoriteStatusResult { states:{sentenceId:string;favoriteId:string;saved:boolean}[]; version:number; }

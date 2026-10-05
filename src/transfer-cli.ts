@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { Database } from './db.js';
-import { exportSnapshot, importSnapshot, summary, type Snapshot } from './data-transfer.js';
+import { exportSnapshot, importSnapshot, summary, verifySnapshot, type Snapshot, type LegacySnapshot } from './data-transfer.js';
 const [operation, path] = process.argv.slice(2);
 if (!['export','import','verify'].includes(operation) || !path) throw Error('Usage: transfer-cli export|import|verify FILE');
 const db = new Database();
@@ -10,10 +10,10 @@ try {
     await writeFile(path, JSON.stringify(snapshot), { flag: 'wx', mode: 0o600 });
     console.log(JSON.stringify(summary(snapshot)));
   } else {
-    const snapshot = JSON.parse(await readFile(path, 'utf8')) as Snapshot;
+    const snapshot = JSON.parse(await readFile(path, 'utf8')) as Snapshot | LegacySnapshot;
     if (operation === 'import') await importSnapshot(db, snapshot);
     const actual = await exportSnapshot(db);
-    if (JSON.stringify(summary(snapshot)) !== JSON.stringify(summary(actual)) || JSON.stringify(snapshot.auditSequence) !== JSON.stringify(actual.auditSequence))
+    if (!verifySnapshot(actual, snapshot))
       throw Error('Transfer verification failed');
     console.log('All table counts, row digests and audit sequence match');
   }

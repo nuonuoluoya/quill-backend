@@ -1929,6 +1929,822 @@
         }
       }
     },
+    "/v1/me/favorites": {
+      "get": {
+        "operationId": "ApiController_favorites",
+        "parameters": [
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": ""
+            },
+            "description": "Literal case-insensitive substring across all currently accessible favorite sentences, not only the loaded page."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "description": "Bound to account, normalized q, capability and collection version; changed collection returns 409 FAVORITES_CHANGED."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FavoritePage"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "requestId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pidan Vocal v1"
+        ]
+      },
+      "put": {
+        "operationId": "ApiController_addFavorite",
+        "parameters": [
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FavoriteWriteResult"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "requestId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pidan Vocal v1"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteWrite"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/favorites/{favoriteId}": {
+      "get": {
+        "operationId": "ApiController_favoriteItem",
+        "parameters": [
+          {
+            "name": "favoriteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FavoriteItem"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "requestId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pidan Vocal v1"
+        ]
+      },
+      "delete": {
+        "operationId": "ApiController_removeFavorite",
+        "parameters": [
+          {
+            "name": "favoriteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FavoriteWriteResult"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "requestId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pidan Vocal v1"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteMutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/favorites/status": {
+      "post": {
+        "operationId": "ApiController_favoriteStatus",
+        "parameters": [
+          {
+            "name": "X-Quill-Capabilities",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated capabilities. review-audio-v1 includes available needs_review audio and its playable counts. Omit for legacy projection."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FavoriteStatusResult"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "requestId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business error (409 PROGRESS_CONFLICT details contains ProgressResult)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pidan Vocal v1"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteStatusWrite"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health/live": {
       "get": {
         "operationId": "ApiController_live",
@@ -2360,6 +3176,391 @@
       }
     },
     "schemas": {
+      "FavoriteReference": {
+        "type": "object",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "textRevision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "chapterId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sentenceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "bookId",
+          "textRevision",
+          "chapterId",
+          "sentenceId"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteMutation": {
+        "type": "object",
+        "properties": {
+          "clientMutationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientMutationCreatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp, fixed with the UUID on retry. New operations allow the past 24 hours and 5 minutes future skew."
+          }
+        },
+        "required": [
+          "clientMutationId",
+          "clientMutationCreatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteWrite": {
+        "type": "object",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "textRevision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "chapterId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sentenceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sourceBuildId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "clientMutationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientMutationCreatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp, fixed with the UUID on retry. New operations allow the past 24 hours and 5 minutes future skew."
+          }
+        },
+        "required": [
+          "bookId",
+          "textRevision",
+          "chapterId",
+          "sentenceId",
+          "sourceBuildId",
+          "clientMutationId",
+          "clientMutationCreatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteWriteResult": {
+        "type": "object",
+        "properties": {
+          "favoriteId": {
+            "type": "string"
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "favoritedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "favoriteId",
+          "saved",
+          "favoritedAt",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteSource": {
+        "type": "object",
+        "properties": {
+          "bookTitle": {
+            "type": "string"
+          },
+          "chapterTitle": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "book",
+              "blog",
+              "movie",
+              "tv",
+              "podcast"
+            ]
+          },
+          "seasonTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "episodeTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "episodeNumber": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true
+          },
+          "part": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "dialogue",
+              "lesson",
+              null
+            ]
+          }
+        },
+        "required": [
+          "bookTitle",
+          "chapterTitle",
+          "contentType",
+          "seasonTitle",
+          "episodeTitle",
+          "episodeNumber",
+          "part"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteItem": {
+        "type": "object",
+        "properties": {
+          "favoriteId": {
+            "type": "string"
+          },
+          "favoritedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "forbidden",
+              "text_revision_changed",
+              "content_unavailable"
+            ]
+          },
+          "reference": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteReference"
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "resolvedBuildId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sentence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Sentence"
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteSource"
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "enum": [
+                  null
+                ]
+              }
+            ]
+          },
+          "playable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "favoriteId",
+          "favoritedAt",
+          "status",
+          "reference",
+          "resolvedBuildId",
+          "sentence",
+          "source",
+          "playable"
+        ],
+        "additionalProperties": false
+      },
+      "FavoritePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteItem"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matchedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "playableCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "version",
+          "totalCount",
+          "matchedCount",
+          "playableCount"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteStatusWrite": {
+        "type": "object",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "textRevision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sourceBuildId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "chapterId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sentenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "minItems": 1,
+            "maxItems": 200,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "bookId",
+          "textRevision",
+          "sourceBuildId",
+          "chapterId",
+          "sentenceIds"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteStatusResult": {
+        "type": "object",
+        "properties": {
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sentenceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512
+                },
+                "favoriteId": {
+                  "type": "string"
+                },
+                "saved": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "sentenceId",
+                "favoriteId",
+                "saved"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "states",
+          "version"
+        ],
+        "additionalProperties": false
+      },
       "Session": {
         "type": "object",
         "properties": {

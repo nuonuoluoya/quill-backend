@@ -39,18 +39,19 @@ export class Database implements Queryable {
     }
   }
   async migrate() {
-    const sql = await readFile(
-      projectPath('migrations/001-initial.sql'),
-      'utf8',
-    );
-    if (this.local) await this.local.exec(sql);
-    else {
-      const client = await this.pool!.connect();
-      try { await client.query(sql); }
-      catch (error) { await client.query('ROLLBACK'); throw error; }
-      finally { client.release(); }
+    // Deliberate, ordered, idempotent migrations; production calls db:migrate explicitly.
+    for (const name of ['001-initial.sql', '002-favorites.sql']) {
+      const sql = await readFile(projectPath('migrations/' + name), 'utf8');
+      if (this.local) await this.local.exec(sql);
+      else {
+        const client = await this.pool!.connect();
+        try { await client.query(sql); }
+        catch (error) { await client.query('ROLLBACK'); throw error; }
+        finally { client.release(); }
+      }
     }
   }
+
   async close() {
     await this.pool?.end();
     await this.local?.close();

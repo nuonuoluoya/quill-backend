@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Headers,
+  HttpCode,
   Inject,
   Module,
   Param,
@@ -32,6 +33,7 @@ import { Database } from './db.js';
 import { AuthService, signedIn } from './auth.js';
 import { BooksService, equal, sign } from './books.js';
 import { ProgressService } from './progress.js';
+import { FavoritesService, favoriteRequest } from './favorites.js';
 import { Fault } from './errors.js';
 import { Storage, byteRange } from './storage.js';
 import { config, production } from './config.js';
@@ -41,6 +43,7 @@ export class Services {
   auth: AuthService;
   books: BooksService;
   progress: ProgressService;
+  favorites: FavoritesService;
   constructor(
     public db: Database,
     public storage: Storage,
@@ -48,6 +51,7 @@ export class Services {
     this.auth = new AuthService(db);
     this.books = new BooksService(db);
     this.progress = new ProgressService(db);
+    this.favorites = new FavoritesService(db);
   }
 }
 const bodySchema = {
@@ -170,6 +174,24 @@ class ApiController {
   ) {
     return this.s.progress.mutate(signedIn(await this.s.auth.identity(h)), b, body, true);
   }
+  private favorite<T>(h:string|undefined,work:(user:string)=>Promise<T>) {
+    return favoriteRequest(async()=>work(signedIn(await this.s.auth.identity(h))));
+  }
+  @Get('me/favorites') async favorites(@Headers('authorization') h:string|undefined,@Query() q:Record<string,string>,@Headers('x-quill-capabilities') capabilities?:string) {
+    return this.favorite(h,user=>this.s.favorites.list(user,q,supportsReviewAudio(capabilities)));
+  }
+  @Get('me/favorites/:favoriteId') async favoriteItem(@Headers('authorization') h:string|undefined,@Param('favoriteId') id:string,@Headers('x-quill-capabilities') capabilities?:string) {
+    return this.favorite(h,user=>this.s.favorites.get(user,id,supportsReviewAudio(capabilities)));
+  }
+  @Put('me/favorites') async addFavorite(@Headers('authorization') h:string|undefined,@Body() body:unknown) {
+    return this.favorite(h,user=>this.s.favorites.put(user,body));
+  }
+  @Delete('me/favorites/:favoriteId') async removeFavorite(@Headers('authorization') h:string|undefined,@Param('favoriteId') id:string,@Body() body:unknown) {
+    return this.favorite(h,user=>this.s.favorites.delete(user,id,body));
+  }
+  @Post('me/favorites/status') @HttpCode(200) async favoriteStatus(@Headers('authorization') h:string|undefined,@Body() body:unknown) {
+    return this.favorite(h,user=>this.s.favorites.status(user,body));
+  }
   @Get('health/live') live() {
     return { status: 'ok' };
   }
@@ -202,7 +224,7 @@ export async function createApp(db = new Database(), storage = new Storage(), mi
     res.setHeader('X-Request-Id', res.locals.requestId);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'private, no-store');
-    if (req.path.toLowerCase().startsWith('/v1/books')) res.vary('X-Quill-Capabilities');
+    if (req.path.toLowerCase().startsWith('/v1/books') || req.path.toLowerCase().startsWith('/v1/me/favorites')) res.vary('X-Quill-Capabilities');
     if (process.env.REQUEST_LOG === '1')
       res.on('finish', () =>
         console.log(
