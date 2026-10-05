@@ -42,6 +42,7 @@ export interface ChapterEntry {
 }
 export interface LockedChapter { id: string; title: string; number: number; }
 export interface Book {
+  podcastParts?: PodcastPart[];
   previewOfBookId?: string;
   lockedChapters?: LockedChapter[];
   contentType: ContentType;
@@ -59,7 +60,7 @@ export interface Book {
   visibility: Visibility;
   chapters: ChapterEntry[];
 }
-export interface BookSummary extends Omit<Book, 'chapters' | 'seasons' | 'episodes' | 'previewOfBookId' | 'lockedChapters'> {
+export interface BookSummary extends Omit<Book, 'chapters' | 'seasons' | 'episodes' | 'previewOfBookId' | 'lockedChapters' | 'podcastParts'> {
   seasonCount: number;
   episodeCount: number;
   chapterCount: number;

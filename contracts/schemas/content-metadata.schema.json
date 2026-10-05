@@ -140,6 +140,19 @@
     "allowReviewAudio": {
       "type": "boolean",
       "description": "Explicit opt-in to import needs_review sentences with validated audio; default false. Review status and reasons are retained."
+    },
+    "podcastParts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "dialogue",
+          "lesson"
+        ]
+      },
+      "description": "Declared podcast parts in dialogue/lesson order; omitted means both."
     }
   },
   "additionalProperties": true

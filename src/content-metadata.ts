@@ -21,7 +21,10 @@ export function validateContentMetadata(book: any) {
     assert(url.protocol === 'https:' && !!url.hostname && !url.username && !url.password,
       '封面必须为不含账号密码的 HTTPS 地址');
   }
+  assert(type === 'podcast' || !('podcastParts' in book), '仅播客允许声明节目部分');
   if (type === 'podcast') {
+    const parts: string[] = book.podcastParts ?? ['dialogue', 'lesson'];
+    assert(parts.length < 2 || parts[0] === 'dialogue', '播客部分声明须按对话、教学排列');
     assert(!('seasons' in book) && book.chapters.every((c: any) =>
       !('seasonId' in c) && !('episodeNumber' in c)), '播客不能混用电视剧季集字段');
     const episodes = book.episodes ?? [];
@@ -38,7 +41,7 @@ export function validateContentMetadata(book: any) {
     for (const chapter of book.chapters) {
       const number = byId.get(chapter.episodeId);
       const part = ['dialogue', 'lesson'].indexOf(chapter.part);
-      assert(number !== undefined && part >= 0, '播客部分必须指定有效期 ID 与对话/教学类型');
+      assert(number !== undefined && part >= 0 && parts.includes(chapter.part), '播客部分必须指定有效期 ID 与节目声明的对话/教学类型');
       assert(number! > lastNumber || (number === lastNumber && part > lastPart),
         '播客部分须按期号、对话和教学排列，不能重复');
       used.add(chapter.episodeId);

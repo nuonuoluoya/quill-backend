@@ -111,3 +111,9 @@ npm.cmd run cli -- validate D:\quill-backend\.data\englishpod-package
 仅在运营方明确允许时，导入包book.json顶层设置 `allowReviewAudio: true`。此时needs_review句可以提供真实audio路径和有限正duration，但必须保留非空alignment.reasons；也可保留null/null表示缺源。默认不启用，unmatched/excluded始终不开放音频；格式、时长、哈希与引用校验不放宽。playableCount统计实际可播放音频，不能由“待复核”状态直接推断缺源。
 
 支持该能力的客户端读取内容时发送 `X-Quill-Capabilities: review-audio-v1`。返回needs_review且有有效audioId/duration的句子允许播放。阅读页按用户最新要求隐藏待复核文案和原因，缺音统一显示“暂无逐句音频”并禁用；服务端仍保留审核状态及原因。没有能力头的列表/详情/章节按旧语义投影为待复核空音频并扣除相应计数，保持旧客户端可读。能力头不替代身份/书籍授权；分页游标不能跨能力模式复用，内部reviewAudioCounts不属于公开DTO。
+
+## 单部分播客
+
+节目可在book.json顶层声明 `podcastParts: ["lesson"]`（或只dialogue、按顺序的两者），数组非空、不重复且按dialogue在lesson前排序。省略按历史双部分处理；非播客禁止此字段，每个章节part必须在声明内。该字段随导入保存，仅在Book详情/固定构建中返回，不出现在BookSummary列表；未声明的历史快照保持原样。
+
+前端按节目声明生成各期的部分入口，只对声明了却没有素材的部分显示缺源，不能按当前章节集合反推节目格式。Daily Easy English使用单lesson，每期保留完整教学和其中的例句/对话；English Pod缺省仍展示对话/教学及已记录的8处缺源。期号可有间隔，不补造缺失整期；全节目进度和原chapterId/sentenceId不变，待复核播放继续使用review-audio-v1能力协商。

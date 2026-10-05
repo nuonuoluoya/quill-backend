@@ -321,6 +321,7 @@ export class ImportService {
       unitCount: b.chapters.length,
       seasons: b.seasons ?? [],
       episodes: b.episodes ?? [],
+      ...(b.podcastParts !== undefined ? { podcastParts: b.podcastParts } : {}),
       ...(b.coverUrl !== undefined ? { coverUrl: b.coverUrl } : {}),
       bookId: id,
       buildId: build,
