@@ -1,6 +1,6 @@
 # 收藏接口与运维
 
-2026-10-05：实现与隔离验收，尚未部署生产。规范来源为 `docs/SPEC.md` 中《收藏保存、接口与实施契约》；机器契约见 `contracts/openapi.yaml`，类型见 `contracts/src/index.ts`。
+2026-10-05：实现、隔离验收与后端生产部署已完成；小程序包发布独立进行。规范来源为 `docs/SPEC.md` 中《收藏保存、接口与实施契约》；机器契约见 `contracts/openapi.yaml`，类型见 `contracts/src/index.ts`。
 
 ## 请求与账号
 
@@ -45,7 +45,7 @@ FavoriteItem 固定字段为 favoriteId/favoritedAt/status/reference/resolvedBui
 ## 迁移、转储与回退
 
 - `npm run db:migrate` 按确定名单执行001、002，每个脚本单独事务且可重复。001保持原字节；002只新增三个收藏表及索引，只依赖users，不把收藏绑定到会退役的构建。开发启动保留既有自动迁移行为，production/staging 不自动迁移。
-- 生产发布必须另行授权；发布时先按既有运维流程备份并显式迁移，再切换API。仅回退API时保留新表，避免丢收藏；本次没有执行这些生产动作。
+- 生产发布按用户授权先备份并显式迁移，再切换API。此次已由管理入口SET ROLE quill_owner执行001/002，新增表沿用quill_app的四项业务权限；运行账号不具备DDL权限，不应用它执行迁移CLI。仅回退API时保留新表，避免丢收藏。备份、原生PG演练与上线结果见 [生产发布记录](../deploy/FAVORITES-DEPLOYMENT-2026-10-05.md)。
 - `npm run cli -- maintenance` 清理30天前的收藏幂等记录。清理后，旧请求仍被原始时间窗口拒绝。保留正常数据库统计维护，幂等账本随30天写入量滚动，不承诺固定字节上限。
 - `npm run data:transfer -- export FILE` 输出 `quill-transfer-v2`，包含旧11表与新增3表；import/verify对全部表和审计序列验证。导入前须在独立空目标库执行迁移；目标任一业务表非空即拒绝。严格旧v1文件被标准化为三个空收藏表，不接受混入新表的伪v1，不覆盖或默默丢弃已有收藏。
 
